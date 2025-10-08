@@ -1,0 +1,30 @@
+//
+//  .gitignore
+//  TouchGrass
+//
+//  Created by Ben Keane on 10/8/25.
+//
+
+# Xcode
+.DS_Store
+*.xcodeproj/xcuserdata/
+*.xcuserdatad/
+DerivedData/
+build/
+*.xcworkspace/xcuserdata/
+
+# Swift Package Manager
+.build/
+
+# Carthage
+Carthage/Build/
+
+# CocoaPods
+Pods/
+
+# Optional: Sensitive Info
+# If you have sensitive information in Plist files or other configuration files,
+# you might want to ignore them and manage them separately (e.g., using environment variables or a content filter driver).
+# For example:
+# MyProject/Info.plist
+# MyProject/Secrets.plist
