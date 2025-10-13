@@ -23,30 +23,63 @@ struct ContentView: View {
     @State var camera: MapCameraPosition = .automatic
     
     var body: some View {
-        Map(position: $camera) {
-            Marker("Mercat Central", coordinate: mercatCentral)
-                .tint(.green)
-            Marker("Balcó del Mediterrani", coordinate: balco)
-                .tint(.blue)
-            Marker("Abuelos", coordinate: abuelos)
-                .tint(.purple)
+        ZStack {
+            Map(position: $camera) {
+                Marker("Mercat Central", coordinate: mercatCentral)
+                    .tint(.green)
+                Marker("Balcó del Mediterrani", coordinate: balco)
+                    .tint(.blue)
+                Marker("Abuelos", coordinate: abuelos)
+                    .tint(.purple)
+            }
+            .mapStyle(.standard)
+            VStack {
+                HStack {
+                    Button {
+                        print("")
+                    } label: {
+                        Image(systemName: "list.dash")
+                            .font(.system(size: 50))
+                            .padding()
+                    }
+                    Spacer() // pushes button to left
+                }
+                Spacer() // pushes button to top
+            }
         }
+    
+
+        
         // container for buttons
         .safeAreaInset(edge: .bottom) {
             HStack {
                 Spacer()
                 Button {
+                    //temporary until we add camera functionality
+                print("")
+                } label: {
+                    Image(systemName: "camera.fill").font(.system(size: 50))
+                }
+                Spacer()
+                Button {
                     camera = .region(MKCoordinateRegion(center: burlington, latitudinalMeters: 2000, longitudinalMeters: 2000))
                     
                 } label: {
-                    Text("Go to Burlington")
+                    Image(systemName: "house.fill").font(.system(size: 50))
                 }
                 Spacer()
+                Button {
+                    //temporary until we add camera functionality
+                print("")
+                } label: {
+                    Image(systemName: "mappin.circle.fill").font(.system(size: 50))
+                }
+                Spacer()
+                
             }
             .padding(.top)
             .background(.thinMaterial)
         }
-        .mapStyle(.standard)
     }
 }
 
