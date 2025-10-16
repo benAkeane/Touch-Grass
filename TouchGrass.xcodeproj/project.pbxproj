@@ -8,6 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		9390543C2E96E99D00908A7E /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 9390543B2E96E99700908A7E /* .gitignore */; };
+		93A1AA3A2EA1A040005B208F /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 93A1AA392EA1A040005B208F /* FirebaseAnalytics */; };
+		93A1AA3C2EA1A040005B208F /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 93A1AA3B2EA1A040005B208F /* FirebaseAuth */; };
+		93A1AA3E2EA1A040005B208F /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 93A1AA3D2EA1A040005B208F /* FirebaseCore */; };
+		93A1AA402EA1A040005B208F /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 93A1AA3F2EA1A040005B208F /* FirebaseFirestore */; };
+		93A1AA422EA1A040005B208F /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 93A1AA412EA1A040005B208F /* FirebaseStorage */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -28,10 +33,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		939054032E96E73100908A7E /* TouchGrass.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = TouchGrass.app; path = "/Users/benkeane/Desktop/Touch-Grass/build/Debug-iphoneos/TouchGrass.app"; sourceTree = "<absolute>"; };
-		939054102E96E73B00908A7E /* TouchGrassTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = TouchGrassTests.xctest; path = "/Users/benkeane/Desktop/Touch-Grass/build/Debug-iphoneos/TouchGrass.app/PlugIns/TouchGrassTests.xctest"; sourceTree = "<absolute>"; };
-		9390541A2E96E73B00908A7E /* TouchGrassUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = TouchGrassUITests.xctest; path = "/Users/benkeane/Desktop/Touch-Grass/build/Debug-iphoneos/TouchGrassUITests-Runner.app/PlugIns/TouchGrassUITests.xctest"; sourceTree = "<absolute>"; };
 		9390543B2E96E99700908A7E /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		93A1AA242EA1978A005B208F /* TouchGrass.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TouchGrass.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		93A1AA252EA1978A005B208F /* TouchGrassTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TouchGrassTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		93A1AA262EA1978A005B208F /* TouchGrassUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TouchGrassUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -57,6 +62,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				93A1AA3A2EA1A040005B208F /* FirebaseAnalytics in Frameworks */,
+				93A1AA402EA1A040005B208F /* FirebaseFirestore in Frameworks */,
+				93A1AA3E2EA1A040005B208F /* FirebaseCore in Frameworks */,
+				93A1AA422EA1A040005B208F /* FirebaseStorage in Frameworks */,
+				93A1AA3C2EA1A040005B208F /* FirebaseAuth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -84,6 +94,9 @@
 				939054132E96E73B00908A7E /* TouchGrassTests */,
 				9390541D2E96E73B00908A7E /* TouchGrassUITests */,
 				9390543B2E96E99700908A7E /* .gitignore */,
+				93A1AA242EA1978A005B208F /* TouchGrass.app */,
+				93A1AA252EA1978A005B208F /* TouchGrassTests.xctest */,
+				93A1AA262EA1978A005B208F /* TouchGrassUITests.xctest */,
 			);
 			sourceTree = "<group>";
 		};
@@ -107,9 +120,14 @@
 			);
 			name = TouchGrass;
 			packageProductDependencies = (
+				93A1AA392EA1A040005B208F /* FirebaseAnalytics */,
+				93A1AA3B2EA1A040005B208F /* FirebaseAuth */,
+				93A1AA3D2EA1A040005B208F /* FirebaseCore */,
+				93A1AA3F2EA1A040005B208F /* FirebaseFirestore */,
+				93A1AA412EA1A040005B208F /* FirebaseStorage */,
 			);
 			productName = TouchGrass;
-			productReference = 939054032E96E73100908A7E /* TouchGrass.app */;
+			productReference = 93A1AA242EA1978A005B208F /* TouchGrass.app */;
 			productType = "com.apple.product-type.application";
 		};
 		9390540F2E96E73B00908A7E /* TouchGrassTests */ = {
@@ -132,7 +150,7 @@
 			packageProductDependencies = (
 			);
 			productName = TouchGrassTests;
-			productReference = 939054102E96E73B00908A7E /* TouchGrassTests.xctest */;
+			productReference = 93A1AA252EA1978A005B208F /* TouchGrassTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		939054192E96E73B00908A7E /* TouchGrassUITests */ = {
@@ -155,7 +173,7 @@
 			packageProductDependencies = (
 			);
 			productName = TouchGrassUITests;
-			productReference = 9390541A2E96E73B00908A7E /* TouchGrassUITests.xctest */;
+			productReference = 93A1AA262EA1978A005B208F /* TouchGrassUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -190,6 +208,9 @@
 			);
 			mainGroup = 939053FA2E96E73100908A7E;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				93A1AA382EA1A040005B208F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 939053FA2E96E73100908A7E;
 			projectDirPath = "";
@@ -546,6 +567,45 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		93A1AA382EA1A040005B208F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.4.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		93A1AA392EA1A040005B208F /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 93A1AA382EA1A040005B208F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		93A1AA3B2EA1A040005B208F /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 93A1AA382EA1A040005B208F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		93A1AA3D2EA1A040005B208F /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 93A1AA382EA1A040005B208F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		93A1AA3F2EA1A040005B208F /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 93A1AA382EA1A040005B208F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		93A1AA412EA1A040005B208F /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 93A1AA382EA1A040005B208F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 939053FB2E96E73100908A7E /* Project object */;
 }
