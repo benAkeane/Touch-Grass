@@ -26,10 +26,8 @@ struct TouchGrassApp: App {
     
     var body: some Scene {
         WindowGroup {
-            if firebaseFunctions.currentUser != nil {
-                ContentView() // Show home screen (map screen)
-                    .environmentObject(firebaseFunctions)
-            }
+            RootView()
+                .environmentObject(firebaseFunctions)
         }
     }
 }
