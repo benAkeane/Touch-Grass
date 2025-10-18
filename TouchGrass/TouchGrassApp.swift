@@ -7,6 +7,7 @@
 
 import SwiftUI
 import FirebaseCore
+import FirebaseAuth
 
 class AppDelegate: NSObject, UIApplicationDelegate {
   func application(_ application: UIApplication,
@@ -21,10 +22,14 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 @main
 struct TouchGrassApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    @StateObject private var firebaseFunctions = FirebaseFunctions()
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            if firebaseFunctions.currentUser != nil {
+                ContentView() // Show home screen (map screen)
+                    .environmentObject(firebaseFunctions)
+            }
         }
     }
 }
