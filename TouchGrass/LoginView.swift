@@ -16,40 +16,49 @@ struct LoginView: View {
     @State private var isSignUp = false
     
     var body: some View {
-        VStack(spacing: 16) {
+        VStack {
             Text("Touch Grass")
-                .padding()
-            
-            Text(isSignUp ? "Create Account" : "Log In")
                 .font(.largeTitle)
                 .bold()
-            
-            TextField("Email", text: $email)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .autocapitalization(.none)
-            
-            SecureField("Password", text: $password)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-            
-            Button(isSignUp ? "Sign Up" : "Log In") {
-                if isSignUp {
-                    firebaseFunctions.signUp(email: email, password: password) { result in printResult(result)
-                    }
-                } else {
-                    firebaseFunctions.logIn(email: email, password: password) {
-                        result in printResult(result)}
-                }
-            }
-            .buttonStyle(.borderedProminent)
-            
-            Button(isSignUp ? "Login" : "Sign Up") {
-                isSignUp.toggle()
-            }
-            .foregroundColor(.blue)
-            
-            Text(authMessage)
-                .foregroundColor(.red)
                 .padding(.top)
+            
+            Spacer()
+            
+            VStack(spacing: 16) {
+                Text(isSignUp ? "Create Account" : "Log In")
+                    .font(.title)
+                    .bold()
+                
+                TextField("Email", text: $email)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .autocapitalization(.none)
+                
+                SecureField("Password", text: $password)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                
+                Button(isSignUp ? "Sign Up" : "Log In") {
+                    if isSignUp {
+                        firebaseFunctions.signUp(email: email, password: password) { result in printResult(result)
+                        }
+                    } else {
+                        firebaseFunctions.logIn(email: email, password: password) {
+                            result in printResult(result)}
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                
+                Button(isSignUp ? "Login" : "Sign Up") {
+                    isSignUp.toggle()
+                }
+                .foregroundColor(.blue)
+                
+                Text(authMessage)
+                    .foregroundColor(.red)
+                    .padding(.top)
+            }
+            .padding()
+            
+            Spacer()
         }
         .padding()
     }
