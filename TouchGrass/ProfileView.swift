@@ -14,19 +14,45 @@ struct ProfileView: View {
     
     var body: some View {
         VStack {
-            Text("Touch Grass")
-                .font(.largeTitle)
-                .bold()
-                .padding(.top)
-            
-            Spacer()
-            
+
+            ZStack {
+                HStack {
+                    Button {
+                        print("")
+                    } label: {
+                        Image(systemName: "list.dash")
+                            .font(.system(size: 50))
+                            .padding()
+                    }
+                    Spacer()
+                }
+
+                Text("My Profile")
+                    .font(.largeTitle)
+                    .bold()
+                    .padding(.top)
             }
-            .padding()
-            
+            .padding(.horizontal)
+
+            Image("Profile")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 300, height: 300)
+                .clipShape(Circle())
+                .overlay(Circle().stroke(style: StrokeStyle(lineWidth: 4)))
+                .padding()
+
+            Text("\(Auth.auth().currentUser?.displayName ?? "User")")
+                .font(.largeTitle)
+
             Spacer()
+        }
     }
+    
+    
       
 }
-    
 
+#Preview {
+    ProfileView()
+}
