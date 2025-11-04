@@ -12,6 +12,7 @@ struct LoginView: View {
     @EnvironmentObject var firebaseFunctions: FirebaseFunctions
     @State private var email = ""
     @State private var password = ""
+    @State private var username = ""
     @State private var authMessage = ""
     @State private var isSignUp = false
     
@@ -29,6 +30,10 @@ struct LoginView: View {
                     .font(.title)
                     .bold()
                 
+                TextField("Username", text: $username)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .autocapitalization(.none)
+                
                 TextField("Email", text: $email)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .autocapitalization(.none)
@@ -38,11 +43,22 @@ struct LoginView: View {
                 
                 Button(isSignUp ? "Sign Up" : "Log In") {
                     if isSignUp {
-                        firebaseFunctions.signUp(email: email, password: password) { result in printResult(result)
+                        firebaseFunctions.signUp(email: email, password: password, username: username) { result in
+                            switch result {
+                            case .success:
+                                print("Signed up!")
+                            case .failure(let error):
+                                authMessage = error.localizedDescription
+                            }
                         }
                     } else {
-                        firebaseFunctions.logIn(email: email, password: password) {
-                            result in printResult(result)}
+                        firebaseFunctions.logIn(email: email, password: password) { result in switch result {
+                        case .success:
+                            print("Logged in!")
+                        case .failure(let error):
+                            authMessage = error.localizedDescription
+                        }
+                        }
                     }
                 }
                 .buttonStyle(.borderedProminent)
@@ -62,13 +78,16 @@ struct LoginView: View {
         }
         .padding()
     }
-    
-    private func printResult(_ result: Result<AuthDataResult, Error>) {
-        switch result {
-        case .success(let authResult):
-            authMessage = "Logged In \(authResult.user.email ?? "")"
-        case .failure(let error):
-            authMessage = "Error: \(error.localizedDescription)"
-        }
-    }
 }
+    
+        
+// Dont need anymore (commented out for now)
+//    private func printResult(_ result: Result<AuthDataResult, Error>) {
+//        switch result {
+//        case .success(let authResult):
+//            authMessage = "Logged In \(authResult.user.email ?? "")"
+//        case .failure(let error):
+//            authMessage = "Error: \(error.localizedDescription)"
+//        }
+//    }
+//}

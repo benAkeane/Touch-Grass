@@ -22,12 +22,19 @@ class FirebaseFunctions: ObservableObject {
     }
     
     
-    func signUp(email: String, password: String, passed: @escaping (Result<AuthDataResult, Error>) -> Void) {
+    func signUp(email: String, password: String, username: String, passed: @escaping (Result<AuthDataResult, Error>) -> Void) {
         Auth.auth().createUser(withEmail: email, password: password) {
             result, error in
             if let error = error {
                 passed(.failure(error))
             } else if let result = result {
+                let userID = result.user.uid
+                let data: [String: Any] = [
+                    "email": email,
+                    "username": username,
+                    "time_created": Timestamp(date: Date())
+                ]
+                self.addNewUser(userID: userID, data: data)
                 passed(.success(result))
             }
         }
