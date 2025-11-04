@@ -30,9 +30,11 @@ struct LoginView: View {
                     .font(.title)
                     .bold()
                 
-                TextField("Username", text: $username)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .autocapitalization(.none)
+                if isSignUp {
+                    TextField("Username", text: $username)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .autocapitalization(.none)
+                }
                 
                 TextField("Email", text: $email)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
