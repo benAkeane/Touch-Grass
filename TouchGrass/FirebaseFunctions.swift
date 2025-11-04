@@ -85,4 +85,18 @@ class FirebaseFunctions: ObservableObject {
             .collection("routes")
             .addDocument(data: routeData)
     }
-} 
+    
+    func getUsername(userID: String, passed: @escaping (String?) -> Void) {
+        db.collection("users").document(userID).getDocument { name, error in
+            if let error = error {
+                print("error getting username: \(error.localizedDescription)")
+                passed(nil)
+            } else if let data = name?.data(), let username = data["username"] as? String {
+                passed(username)
+            } else {
+                passed(nil)
+            }
+        }
+    }
+}
+
