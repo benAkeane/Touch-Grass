@@ -9,6 +9,7 @@ import FirebaseAuth
 import FirebaseFirestore
 import Combine
 
+
 class FirebaseFunctions: ObservableObject {
     private let db = Firestore.firestore()
     
@@ -22,6 +23,8 @@ class FirebaseFunctions: ObservableObject {
     }
     
     
+    // user signup function using firebase auth,
+    // stores uid, and user data: username, email, timestamp for when account created
     func signUp(email: String, password: String, username: String, passed: @escaping (Result<AuthDataResult, Error>) -> Void) {
         Auth.auth().createUser(withEmail: email, password: password) {
             result, error in
@@ -41,7 +44,7 @@ class FirebaseFunctions: ObservableObject {
     }
 
     
-    
+    //
     func logIn(email: String, password: String, passed: @escaping (Result<AuthDataResult, Error>) -> Void) {
         Auth.auth().signIn(withEmail: email, password: password) {
             result, error in
@@ -52,6 +55,7 @@ class FirebaseFunctions: ObservableObject {
             }
         }
     }
+    
     
     
     func signOut() {
