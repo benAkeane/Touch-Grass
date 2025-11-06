@@ -11,6 +11,7 @@ import MapKit
 struct ContentView: View {
     
     @StateObject var manager = LocationManager()
+    @EnvironmentObject var firebaseFunctions: FirebaseFunctions
     @State private var cameraPosition: MapCameraPosition = .automatic
     @State private var mapConfiguration = MKStandardMapConfiguration(elevationStyle: .realistic, emphasisStyle: .default)
     var profileSwap: () -> Void = {}
@@ -72,7 +73,7 @@ struct ContentView: View {
                 Spacer()
                 Button {
                     if manager.isRecording {
-                        manager.stopRecording()
+                        manager.stopRecording(firebaseFunctions: firebaseFunctions)
                     } else {
                         manager.startRecording()
                     }

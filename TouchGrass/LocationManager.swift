@@ -6,7 +6,7 @@
 //
 
 import MapKit
-import FirebaseFunctions
+import FirebaseAuth
 
 final class LocationManager: NSObject, ObservableObject {
     private let locationManager = CLLocationManager()
@@ -47,12 +47,12 @@ final class LocationManager: NSObject, ObservableObject {
         locationManager.startUpdatingLocation()
     }
     
-    func stopRecording() {
+    func stopRecording(firebaseFunctions: FirebaseFunctions) {
         isRecording = false
         locationManager.stopUpdatingLocation()
         
-        guard let userID = FirebaseFunctions.currentUser?.uid else { return }
-        FirebaseFunctions.saveRoute(for: userID, name: "Route \(Date())", coordinates: recordedRoute)
+        guard let userID = firebaseFunctions.currentUser?.uid else { return }
+        firebaseFunctions.saveRoute(for: userID, name: "Route \(Date())", coordinates: recordedRoute)
     }
 }
 

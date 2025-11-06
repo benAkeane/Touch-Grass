@@ -7,10 +7,12 @@
 
 import SwiftUI
 import FirebaseAuth
+import MapKit
 
 struct ProfileView: View {
     @EnvironmentObject var firebaseFunctions: FirebaseFunctions
     @State private var username: String = ""
+    @State private var routes: [Route] = []
     var onBack: () -> Void = {}
     
     
@@ -61,32 +63,33 @@ struct ProfileView: View {
                 .bold()
                 .padding(.top)
 
+            // SHOULD display routes, but doesn't work... yet
+            // ill look into it soon - Ben
             ScrollView {
                 VStack {
-                    ForEach(sampleRoutes, id: \.0) { route in
-                        HStack {
-                            
-                            VStack(alignment: .leading) {
-                                Button{
-                                    print("")
-                                } label: {
-                                    Text(route.0)
+                    if routes.isEmpty {
+                        Text("No routes yet")
+                            .foregroundColor(.gray)
+                            .padding()
+                    } else {
+                        ForEach(routes) { route in
+                            HStack {
+                                VStack(alignment: .leading) {
+                                    Text(route.name)
                                         .font(.headline)
-                                    Spacer()
-                                    Text(route.1)
+                                    Text(route.date.formatted(date: .abbreviated, time: .shortened))
                                         .font(.subheadline)
                                         .foregroundColor(.gray)
                                 }
-                                
+                                Spacer()
+                                Image(systemName: "map")
+                                    .font(.title2)
+                                    .foregroundColor(.blue)
                             }
-                            Spacer()
-                            Image(systemName: "map")
-                                .font(.title2)
-                                .foregroundColor(.blue)
+                            .padding()
+                            .background(Color(.gray))
+                            .cornerRadius(10)
                         }
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(10)
                     }
                 }
                 .padding(.horizontal)
@@ -106,8 +109,21 @@ struct ProfileView: View {
         }
     }
     
-    
-      
+    private func loadProfileData() {
+        guard let user = firebaseFunctions.currentUser else { return }
+        
+        // get username
+        firebaseFunctions.getUsername(userID: user.uid) { name in
+            if let name = name {
+                self.username = name
+            }
+        }
+        
+        // get routes
+        firebaseFunctions.getRoutes(for: user.uid) { fetchedRoutes in
+            self.routes = fetchedRoutes
+        }
+    }
 }
 
 #Preview {

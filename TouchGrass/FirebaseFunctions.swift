@@ -134,5 +134,27 @@ class FirebaseFunctions: ObservableObject {
             }
         }
     }
+    
+    
+    // getter function for fetching a users stored routes
+    func getRoutes(for userID: String, passed: @escaping ([Route]) -> Void) {
+        db.collection("users")
+            .document(userID)
+            .collection("routes")
+            .order(by: "date", descending: true)
+            .getDocuments { snapshot, error in
+                if let error = error {
+                    print("error getting routes: \(error.localizedDescription)")
+                    passed([])
+                    return
+                }
+                
+                let routes = snapshot?.documents.compactMap { document -> Route? in
+                    try? document.data(as: Route.self)
+                } ?? []
+                
+                passed(routes)
+            }
+    }
 }
 
