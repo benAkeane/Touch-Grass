@@ -13,6 +13,7 @@ struct ContentView: View {
     @StateObject var manager = LocationManager()
     @State private var cameraPosition: MapCameraPosition = .automatic
     @State private var mapConfiguration = MKStandardMapConfiguration(elevationStyle: .realistic, emphasisStyle: .default)
+    var profileSwap: () -> Void = {}
         
     var body: some View {
         ZStack {
@@ -36,8 +37,9 @@ struct ContentView: View {
             
             VStack {
                 HStack {
+                    // when list button is clicked take user to profile view (temporary)
                     Button {
-                        print("")
+                        profileSwap()
                     } label: {
                         Image(systemName: "list.dash")
                             .font(.system(size: 50))
@@ -48,7 +50,6 @@ struct ContentView: View {
                 Spacer() // pushes button to top
             }
         }
-        
         
         
         // container for buttons
