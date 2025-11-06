@@ -94,6 +94,7 @@ class FirebaseFunctions: ObservableObject {
         }
     }
     
+    
     // current function for adding a route to the firestore database
     // not tested yet...
     // uses the route struct to store route name, coordinates (via geopoints), and timestamp
@@ -118,6 +119,7 @@ class FirebaseFunctions: ObservableObject {
                 }
             }
     }
+    
     
     // getter function for fetching the current users username
     func getUsername(userID: String, passed: @escaping (String?) -> Void) {
