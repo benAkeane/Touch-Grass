@@ -15,6 +15,9 @@ final class LocationManager: NSObject, ObservableObject {
         span: .init(latitudeDelta: 0.2, longitudeDelta: 0.2)
     )
     
+    @Published var isRecording = false
+    @Published var recordedRoute: [CLLocationCoordinate2D] = []
+    
     override init() {
         super.init()
         
@@ -36,6 +39,17 @@ final class LocationManager: NSObject, ObservableObject {
             break
         }
     }
+    
+    func startRecording() {
+        recordedRoute.removeAll()
+        isRecording = true
+        locationManager.startUpdatingLocation()
+    }
+    
+    func stopRecording() {
+        isRecording = false
+        locationManager.stopUpdatingLocation()
+    }
 }
 
 extension LocationManager: CLLocationManagerDelegate {
@@ -49,12 +63,15 @@ extension LocationManager: CLLocationManagerDelegate {
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        //locationManager.stopUpdatingLocation()
-        locations.last.map {
-            region = MKCoordinateRegion(
-                center: $0.coordinate,
-                span: .init(latitudeDelta: 0.01, longitudeDelta: 0.01)
-            )
+        guard let location = locations.last else { return }
+        
+        region = MKCoordinateRegion(
+            center: location.coordinate,
+            span: .init(latitudeDelta: 0.01, longitudeDelta: 0.01)
+        )
+        
+        if isRecording {
+            recordedRoute.append(location.coordinate)
         }
     }
 }

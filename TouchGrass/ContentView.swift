@@ -11,11 +11,29 @@ import MapKit
 struct ContentView: View {
     
     @StateObject var manager = LocationManager()
+    @State private var cameraPosition: MapCameraPosition = .automatic
+    @State private var mapConfiguration = MKStandardMapConfiguration(elevationStyle: .realistic, emphasisStyle: .default)
         
     var body: some View {
         ZStack {
-            Map(coordinateRegion: $manager.region, showsUserLocation: true)
-                .edgesIgnoringSafeArea(.all)
+            Map(position: .constant(.region(manager.region))) {
+                UserAnnotation()
+                if !manager.recordedRoute.isEmpty {
+                    MapPolyline(coordinates: manager.recordedRoute)
+                        .stroke(.blue, lineWidth: 4)
+                }
+                if !manager.isRecording && !manager.recordedRoute.isEmpty {
+                    if let start = manager.recordedRoute.first {
+                        Marker("Start", coordinate: start)
+                    }
+                    if let end = manager.recordedRoute.last {
+                        Marker("End", coordinate: end)
+                    }
+                }
+            }
+            .edgesIgnoringSafeArea(.all)
+
+            
             VStack {
                 HStack {
                     Button {
@@ -52,10 +70,14 @@ struct ContentView: View {
                 }
                 Spacer()
                 Button {
-                    //temporary until we add camera functionality
-                    print("")
+                    if manager.isRecording {
+                        manager.stopRecording()
+                    } else {
+                        manager.startRecording()
+                    }
                 } label: {
-                    Image(systemName: "mappin.circle.fill").font(.system(size: 50))
+                    Image(systemName: manager.isRecording ? "stop.fill" : "play.fill")
+                        .font(.system(size: 50))
                 }
                 Spacer()
                 
