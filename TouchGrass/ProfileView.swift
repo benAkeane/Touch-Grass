@@ -10,6 +10,8 @@ import FirebaseAuth
 
 struct ProfileView: View {
     @EnvironmentObject var firebaseFunctions: FirebaseFunctions
+    @State private var username: String = ""
+    var onBack: () -> Void = {}
     
     
     var body: some View {
@@ -18,7 +20,7 @@ struct ProfileView: View {
             ZStack {
                 HStack {
                     Button {
-                        print("")
+                        onBack() // takes user back to home screen (temporary)
                     } label: {
                         Image(systemName: "list.dash")
                             .font(.system(size: 50))
@@ -42,7 +44,7 @@ struct ProfileView: View {
                 .overlay(Circle().stroke(style: StrokeStyle(lineWidth: 4)))
                 .padding()
 
-            Text("\(Auth.auth().currentUser?.displayName ?? "User")")
+            Text(username)
                 .font(.largeTitle)
             
             // ----- Code for routes below -----
@@ -92,6 +94,15 @@ struct ProfileView: View {
 
             
             Spacer()
+        }
+        .onAppear {
+            if let user = firebaseFunctions.currentUser {
+                firebaseFunctions.getUsername(userID: user.uid) { name in
+                    if let name = name {
+                        self.username = name
+                    }
+                }
+            }
         }
     }
     
