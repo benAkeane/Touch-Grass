@@ -5,9 +5,19 @@
 //  Created by Ben Keane on 10/16/25.
 //
 
+import Foundation
 import FirebaseAuth
 import FirebaseFirestore
-import Combine
+import CoreLocation
+//import Combine
+
+// defines how a route will be stored in firebase
+struct Route: Identifiable, Codable {
+    @DocumentID var id: String?
+    var name: String
+    var coordinates: [GeoPoint]
+    var date: Date
+}
 
 
 class FirebaseFunctions: ObservableObject {
@@ -44,7 +54,7 @@ class FirebaseFunctions: ObservableObject {
     }
 
     
-    //
+    // takes users email and password, checks with firebase auth and logs in if correct
     func logIn(email: String, password: String, passed: @escaping (Result<AuthDataResult, Error>) -> Void) {
         Auth.auth().signIn(withEmail: email, password: password) {
             result, error in
@@ -57,7 +67,7 @@ class FirebaseFunctions: ObservableObject {
     }
     
     
-    
+    // signs current user out
     func signOut() {
         // Error handling for user sign out
         do {
@@ -70,6 +80,8 @@ class FirebaseFunctions: ObservableObject {
     }
 
     
+    // add new user to the firestore database
+    // saves userID, email, username, and timestamp when created
     func addNewUser(userID: String, data: [String: Any]) {
         db.collection("users")
             .document(userID)
@@ -82,14 +94,32 @@ class FirebaseFunctions: ObservableObject {
         }
     }
     
-    
-    func addNewRoute(for userID: String, routeData: [String: Any]) {
+    // current function for adding a route to the firestore database
+    // not tested yet...
+    // uses the route struct to store route name, coordinates (via geopoints), and timestamp
+    // geopoints should be work with firebase (but not tested yet, so im not sure)
+    func saveRoute(for userID: String, name: String, coordinates: [CLLocationCoordinate2D]) {
+        let geoPoints = coordinates.map { GeoPoint(latitude: $0.latitude, longitude: $0.longitude) }
+        let routeData: [String: Any] = [
+            "name": name,
+            "coordinates": geoPoints,
+            "date": Timestamp(date: Date())
+        ]
+        
+        // store routes as a subcollection of users
         db.collection("users")
             .document(userID)
             .collection("routes")
-            .addDocument(data: routeData)
+            .addDocument(data: routeData) { error in
+                if let error = error {
+                    print("error saving route \(error.localizedDescription)")
+                } else {
+                    print("saved route")
+                }
+            }
     }
     
+    // getter function for fetching the current users username
     func getUsername(userID: String, passed: @escaping (String?) -> Void) {
         db.collection("users").document(userID).getDocument { name, error in
             if let error = error {
