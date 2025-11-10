@@ -8,6 +8,7 @@
 import Foundation
 import FirebaseAuth
 import FirebaseFirestore
+import FirebaseStorage
 import CoreLocation
 //import Combine
 
@@ -22,8 +23,8 @@ struct Route: Identifiable, Codable {
 
 class FirebaseFunctions: ObservableObject {
     private let db = Firestore.firestore()
-    
     @Published var currentUser: User?
+    private let storage = Storage.storage()
     
     // When authentication state changes, store current user
     init() {
@@ -156,5 +157,22 @@ class FirebaseFunctions: ObservableObject {
                 passed(routes)
             }
     }
-}
+    
+    // Uploads a profile image to Firebase Storage and stores its download URL in Firestore under the user's document.
+    func uploadProfileImage(_ data: Data, for userID: String) async throws -> String {
+        let path = "users/\(userID)/profile.jpg"
+        let ref = storage.reference().child(path)
 
+        let metadata = StorageMetadata()
+        metadata.contentType = "image/jpeg"
+
+        _ = try await ref.putDataAsync(data, metadata: metadata)
+        let url = try await ref.downloadURL()
+
+        try await db.collection("users")
+            .document(userID)
+            .setData(["profileImageURL": url.absoluteString], merge: true)
+
+        return url.absoluteString
+    }
+}

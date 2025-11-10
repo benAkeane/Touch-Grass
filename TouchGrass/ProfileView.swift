@@ -8,11 +8,16 @@
 import SwiftUI
 import FirebaseAuth
 import MapKit
+import PhotosUI
 
 struct ProfileView: View {
     @EnvironmentObject var firebaseFunctions: FirebaseFunctions
     @State private var username: String = ""
     @State private var routes: [Route] = []
+    @State private var selectedItem: PhotosPickerItem? = nil
+    @State private var profileImage: Image? = nil
+    @State private var isUploading: Bool = false
+    @State private var uploadError: String? = nil
     var onBack: () -> Void = {}
     
     
@@ -37,14 +42,47 @@ struct ProfileView: View {
                     .padding(.top)
             }
             .padding(.horizontal)
+            
+            // ---- Code for Photo Upload below ----
+            PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
+                ZStack(alignment: .bottomTrailing) {
+                    Group {
+                        if let profileImage = profileImage {
+                            profileImage
+                                .resizable()
+                                .scaledToFill()
+                        } else {
+                            Image("Profile")
+                                .resizable()
+                                .scaledToFill()
+                        }
+                    }
+                    .frame(width: 300, height: 300)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(style: StrokeStyle(lineWidth: 4)))
+                    
 
-            Image("Profile")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 300, height: 300)
-                .clipShape(Circle())
-                .overlay(Circle().stroke(style: StrokeStyle(lineWidth: 4)))
-                .padding()
+                    // Edit badge
+                    ZStack {
+                        Circle()
+                            .fill(Color.black.opacity(0.6))
+                            .frame(width: 44, height: 44)
+                        Image(systemName: "pencil")
+                            .foregroundColor(.white)
+                            .font(.system(size: 18, weight: .bold))
+                    }
+                    .offset(x: -15, y: -15)
+                }
+            }
+            .buttonStyle(.plain)
+            .padding()
+            
+            if let uploadError = uploadError {
+                Text(uploadError)
+                    .font(.footnote)
+                    .foregroundColor(.red)
+                    .padding(.bottom, 4)
+            }
 
             Text(username)
                 .font(.largeTitle)
@@ -99,12 +137,27 @@ struct ProfileView: View {
             Spacer()
         }
         .onAppear {
-            if let user = firebaseFunctions.currentUser {
-                firebaseFunctions.getUsername(userID: user.uid) { name in
-                    if let name = name {
-                        self.username = name
+            loadProfileData()
+        }
+        .onChange(of: selectedItem) { oldValue, newValue in
+            guard let newValue = newValue else { return }
+            Task {
+                do {
+                    uploadError = nil
+                   
+                    let data = try await newValue.loadTransferable(type: Data.self)
+                    guard let data, let uiImage = UIImage(data: data) else {
+                        throw NSError(domain: "ProfileView", code: -1, userInfo: [NSLocalizedDescriptionKey: "Could not read selected image data"]) 
                     }
+                    // Optimistically show selected image
+                    profileImage = Image(uiImage: uiImage)
+                    if let user = firebaseFunctions.currentUser {
+                        _ = try await firebaseFunctions.uploadProfileImage(data, for: user.uid)
+                    }
+                } catch {
+                    uploadError = error.localizedDescription
                 }
+             
             }
         }
     }
@@ -128,4 +181,6 @@ struct ProfileView: View {
 
 #Preview {
     ProfileView()
+        .environmentObject(FirebaseFunctions())
 }
+
