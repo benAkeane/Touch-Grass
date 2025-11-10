@@ -12,7 +12,6 @@ import PhotosUI
 
 struct ProfileView: View {
     @EnvironmentObject var firebaseFunctions: FirebaseFunctions
-    @State private var username: String = ""
     @State private var routes: [Route] = []
     @State private var selectedItem: PhotosPickerItem? = nil
     @State private var profileImage: Image? = nil
@@ -83,18 +82,13 @@ struct ProfileView: View {
                     .foregroundColor(.red)
                     .padding(.bottom, 4)
             }
-
-            Text(username)
-                .font(.largeTitle)
+            
+            if let username = firebaseFunctions.currentUser?.username {
+                Text(username)
+                    .font(.largeTitle)
+            }
             
             // ----- Code for routes below -----
-            
-            // Sample Routes below for now
-            let sampleRoutes = [
-                ("Morning Run", "Oct 20, 2025"),
-                ("City Ride", "Oct 18, 2025"),
-                ("Evening Hike", "Oct 15, 2025")
-            ]
 
             Text("Past Routes")
                 .font(.title2)
@@ -140,7 +134,7 @@ struct ProfileView: View {
             loadProfileData()
         }
         .onChange(of: selectedItem) { oldValue, newValue in
-            guard let newValue = newValue else { return }
+            guard let newValue = newValue, let userID = firebaseFunctions.currentUser?.id else { return }
             Task {
                 do {
                     uploadError = nil
@@ -152,7 +146,7 @@ struct ProfileView: View {
                     // Optimistically show selected image
                     profileImage = Image(uiImage: uiImage)
                     if let user = firebaseFunctions.currentUser {
-                        _ = try await firebaseFunctions.uploadProfileImage(data, for: user.uid)
+                        _ = try await firebaseFunctions.uploadProfileImage(data, for: userID)
                     }
                 } catch {
                     uploadError = error.localizedDescription
@@ -163,17 +157,14 @@ struct ProfileView: View {
     }
     
     private func loadProfileData() {
-        guard let user = firebaseFunctions.currentUser else { return }
+        guard let user = firebaseFunctions.currentUser, let userID = user.id else { return }
         
-        // get username
-        firebaseFunctions.getUsername(userID: user.uid) { name in
-            if let name = name {
-                self.username = name
-            }
+        if let urlString = user.profileImageURL, let url = URL(string: urlString) {
+            profileImage = nil
         }
         
         // get routes
-        firebaseFunctions.getRoutes(for: user.uid) { fetchedRoutes in
+        firebaseFunctions.getRoutes(for: userID) { fetchedRoutes in
             self.routes = fetchedRoutes
         }
     }

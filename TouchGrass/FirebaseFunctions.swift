@@ -10,26 +10,23 @@ import FirebaseAuth
 import FirebaseFirestore
 import FirebaseStorage
 import CoreLocation
-//import Combine
-
-// defines how a route will be stored in firebase
-struct Route: Identifiable, Codable {
-    @DocumentID var id: String?
-    var name: String
-    var coordinates: [GeoPoint]
-    var date: Date
-}
 
 
 class FirebaseFunctions: ObservableObject {
     private let db = Firestore.firestore()
-    @Published var currentUser: User?
     private let storage = Storage.storage()
+    @Published var authUser: FirebaseAuth.User?
+    @Published var currentUser: User?
     
     // When authentication state changes, store current user
     init() {
-        Auth.auth().addStateDidChangeListener {
-            _, user in self.currentUser = user
+        Auth.auth().addStateDidChangeListener { _, user in
+            self.authUser = user
+            if let user = user {
+                self.fetchUserData(uid: user.uid)
+            } else {
+                self.currentUser = nil
+            }
         }
     }
     
@@ -41,15 +38,25 @@ class FirebaseFunctions: ObservableObject {
             result, error in
             if let error = error {
                 passed(.failure(error))
-            } else if let result = result {
-                let userID = result.user.uid
-                let data: [String: Any] = [
-                    "email": email,
-                    "username": username,
-                    "time_created": Timestamp(date: Date())
-                ]
-                self.addNewUser(userID: userID, data: data)
+                return
+            }
+            
+            guard let result = result else { return }
+            let userID = result.user.uid
+            
+            let newUser = User(
+                id: userID,
+                username: username,
+                email: email,
+                profileImageURL: nil,
+                time_created: Date()
+            )
+            
+            do {
+                try self.db.collection("users").document(userID).setData(from: newUser)
                 passed(.success(result))
+            } catch {
+                passed(.failure(error))
             }
         }
     }
@@ -73,7 +80,8 @@ class FirebaseFunctions: ObservableObject {
         // Error handling for user sign out
         do {
             try Auth.auth().signOut()
-            currentUser = nil
+            self.authUser = nil
+            self.currentUser = nil
             print("Signed out successfully")
         } catch {
             print("Error signing out: \(error.localizedDescription)")
@@ -81,19 +89,34 @@ class FirebaseFunctions: ObservableObject {
     }
 
     
-    // add new user to the firestore database
-    // saves userID, email, username, and timestamp when created
-    func addNewUser(userID: String, data: [String: Any]) {
-        db.collection("users")
-            .document(userID)
-            .setData(data) { error in
+    // get current user data
+    func fetchUserData(uid: String) {
+        db.collection("users").document(uid).getDocument { snapshot, error in
             if let error = error {
-                print("Error writing to Firestore: \(error.localizedDescription)")
-            } else {
-                print("successfully added document")
+                print("error fetching user data: \(error.localizedDescription)")
+                return
+            }
+            if let user = try? snapshot?.data(as: User.self) {
+                DispatchQueue.main.async {
+                    self.currentUser = user
+                }
             }
         }
     }
+//    
+//    // add new user to the firestore database
+//    // saves userID, email, username, and timestamp when created
+//    func addNewUser(userID: String, data: [String: Any]) {
+//        db.collection("users")
+//            .document(userID)
+//            .setData(data) { error in
+//            if let error = error {
+//                print("Error writing to Firestore: \(error.localizedDescription)")
+//            } else {
+//                print("successfully added document")
+//            }
+//        }
+//    }
     
     
     // current function for adding a route to the firestore database
@@ -102,39 +125,38 @@ class FirebaseFunctions: ObservableObject {
     // geopoints should be work with firebase (but not tested yet, so im not sure)
     func saveRoute(for userID: String, name: String, coordinates: [CLLocationCoordinate2D]) {
         let geoPoints = coordinates.map { GeoPoint(latitude: $0.latitude, longitude: $0.longitude) }
-        let routeData: [String: Any] = [
-            "name": name,
-            "coordinates": geoPoints,
-            "date": Timestamp(date: Date())
-        ]
+        let route = Route(
+            id: nil,
+            name: name,
+            coordinates: geoPoints,
+            date: Date()
+        )
         
-        // store routes as a subcollection of users
-        db.collection("users")
-            .document(userID)
-            .collection("routes")
-            .addDocument(data: routeData) { error in
-                if let error = error {
-                    print("error saving route \(error.localizedDescription)")
-                } else {
-                    print("saved route")
-                }
-            }
-    }
-    
-    
-    // getter function for fetching the current users username
-    func getUsername(userID: String, passed: @escaping (String?) -> Void) {
-        db.collection("users").document(userID).getDocument { name, error in
-            if let error = error {
-                print("error getting username: \(error.localizedDescription)")
-                passed(nil)
-            } else if let data = name?.data(), let username = data["username"] as? String {
-                passed(username)
-            } else {
-                passed(nil)
-            }
+        do {
+            try db.collection("users")
+                .document(userID)
+                .collection("routes")
+                .addDocument(from: route)
+            print("saved route")
+        } catch {
+            print("error saving route: \(error.localizedDescription)")
         }
     }
+    
+    
+//    // getter function for fetching the current users username
+//    func getUsername(userID: String, passed: @escaping (String?) -> Void) {
+//        db.collection("users").document(userID).getDocument { name, error in
+//            if let error = error {
+//                print("error getting username: \(error.localizedDescription)")
+//                passed(nil)
+//            } else if let data = name?.data(), let username = data["username"] as? String {
+//                passed(username)
+//            } else {
+//                passed(nil)
+//            }
+//        }
+//    }
     
     
     // getter function for fetching a users stored routes
@@ -174,5 +196,26 @@ class FirebaseFunctions: ObservableObject {
             .setData(["profileImageURL": url.absoluteString], merge: true)
 
         return url.absoluteString
+    }
+    
+    
+    func searchUsers(by username: String, passed: @escaping ([User]) -> Void) {
+        let usersQuery = db.collection("users")
+            .whereField("username", isGreaterThanOrEqualTo: username)
+            .whereField("username", isLessThanOrEqualTo: username + "\u{f8ff}")
+        
+        usersQuery.getDocuments { snapshop, error in
+            if let error = error {
+                print("error finding users: \(error.localizedDescription)")
+                passed([])
+                return
+            }
+            
+            let users = snapshop?.documents.compactMap { document -> User? in
+                try? document.data(as: User.self)
+            } ?? []
+            
+            passed(users)
+        }
     }
 }

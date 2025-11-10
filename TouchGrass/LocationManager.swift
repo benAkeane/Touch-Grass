@@ -51,7 +51,7 @@ final class LocationManager: NSObject, ObservableObject {
         isRecording = false
         locationManager.stopUpdatingLocation()
         
-        guard let userID = firebaseFunctions.currentUser?.uid else { return }
+        guard let userID = firebaseFunctions.currentUser?.id else { return }
         firebaseFunctions.saveRoute(for: userID, name: "Route \(Date())", coordinates: recordedRoute)
     }
 }
