@@ -48,7 +48,7 @@ class FirebaseFunctions: ObservableObject {
                 id: userID,
                 username: username,
                 email: email,
-                profileImageURL: nil,
+                profileImageBase64: nil,
                 time_created: Date()
             )
             
@@ -103,21 +103,6 @@ class FirebaseFunctions: ObservableObject {
             }
         }
     }
-//    
-//    // add new user to the firestore database
-//    // saves userID, email, username, and timestamp when created
-//    func addNewUser(userID: String, data: [String: Any]) {
-//        db.collection("users")
-//            .document(userID)
-//            .setData(data) { error in
-//            if let error = error {
-//                print("Error writing to Firestore: \(error.localizedDescription)")
-//            } else {
-//                print("successfully added document")
-//            }
-//        }
-//    }
-    
     
     // current function for adding a route to the firestore database
     // not tested yet...
@@ -144,21 +129,6 @@ class FirebaseFunctions: ObservableObject {
     }
     
     
-//    // getter function for fetching the current users username
-//    func getUsername(userID: String, passed: @escaping (String?) -> Void) {
-//        db.collection("users").document(userID).getDocument { name, error in
-//            if let error = error {
-//                print("error getting username: \(error.localizedDescription)")
-//                passed(nil)
-//            } else if let data = name?.data(), let username = data["username"] as? String {
-//                passed(username)
-//            } else {
-//                passed(nil)
-//            }
-//        }
-//    }
-    
-    
     // getter function for fetching a users stored routes
     func getRoutes(for userID: String, passed: @escaping ([Route]) -> Void) {
         db.collection("users")
@@ -181,21 +151,30 @@ class FirebaseFunctions: ObservableObject {
     }
     
     // Uploads a profile image to Firebase Storage and stores its download URL in Firestore under the user's document.
-    func uploadProfileImage(_ data: Data, for userID: String) async throws -> String {
-        let path = "users/\(userID)/profile.jpg"
-        let ref = storage.reference().child(path)
-
-        let metadata = StorageMetadata()
-        metadata.contentType = "image/jpeg"
-
-        _ = try await ref.putDataAsync(data, metadata: metadata)
-        let url = try await ref.downloadURL()
+    func uploadProfileImage(_ image: UIImage, for userID: String) async throws {
+        // compress image
+        guard let compressedData = compressImage(image) else {
+            throw NSError(domain: "FirebaseFunctions", code: 0, userInfo: [NSLocalizedDescriptionKey: "failed compressing image"])
+        }
+        
+        // image needs to be converted to this type of string for it to be stored
+        let base64ConvertedString = compressedData.base64EncodedString()
 
         try await db.collection("users")
             .document(userID)
-            .setData(["profileImageURL": url.absoluteString], merge: true)
-
-        return url.absoluteString
+            .setData(["profileImageBase64": base64ConvertedString], merge: true)
+    }
+    
+    func getProfileImageBase64(for userID: String, passed: @escaping (String?) -> Void) {
+        db.collection("users").document(userID).getDocument { doc, error in
+            if let error = error {
+                print("error getting profile image: \(error.localizedDescription)")
+                passed(nil)
+                return
+            }
+            let base64 = doc?.data()?["profileImageBase64"] as? String
+            passed(base64)
+        }
     }
     
     
@@ -217,5 +196,22 @@ class FirebaseFunctions: ObservableObject {
             
             passed(users)
         }
+    }
+    
+    
+    func compressImage(_ image: UIImage) -> Data? {
+        let maxSize: Int = 700_000
+        var compression: CGFloat = 1.0
+        guard var imageData = image.jpegData(compressionQuality: compression) else { return nil }
+        
+        while imageData.count > maxSize && compression > 0.05 {
+            compression -= 0.05
+            if let newData = image.jpegData(compressionQuality: compression) {
+                imageData = newData
+            } else {
+                break
+            }
+        }
+        return imageData
     }
 }

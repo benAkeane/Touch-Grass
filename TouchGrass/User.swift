@@ -12,6 +12,6 @@ struct User: Identifiable, Codable {
     @DocumentID var id: String?
     var username: String
     var email: String?
-    var profileImageURL: String?
+    var profileImageBase64: String?
     var time_created: Date?
 }

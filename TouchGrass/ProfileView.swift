@@ -9,6 +9,7 @@ import SwiftUI
 import FirebaseAuth
 import MapKit
 import PhotosUI
+import FirebaseFirestore
 
 struct ProfileView: View {
     @EnvironmentObject var firebaseFunctions: FirebaseFunctions
@@ -18,7 +19,6 @@ struct ProfileView: View {
     @State private var isUploading: Bool = false
     @State private var uploadError: String? = nil
     var onBack: () -> Void = {}
-    
     
     var body: some View {
         VStack {
@@ -95,8 +95,6 @@ struct ProfileView: View {
                 .bold()
                 .padding(.top)
 
-            // SHOULD display routes, but doesn't work... yet
-            // ill look into it soon - Ben
             ScrollView {
                 VStack {
                     if routes.isEmpty {
@@ -139,34 +137,50 @@ struct ProfileView: View {
                 do {
                     uploadError = nil
                    
-                    let data = try await newValue.loadTransferable(type: Data.self)
-                    guard let data, let uiImage = UIImage(data: data) else {
-                        throw NSError(domain: "ProfileView", code: -1, userInfo: [NSLocalizedDescriptionKey: "Could not read selected image data"]) 
+                    guard let data = try await newValue.loadTransferable(type: Data.self),
+                                      let uiImage = UIImage(data: data) else {
+                                    throw NSError(domain: "ProfileView", code: -1, userInfo: [NSLocalizedDescriptionKey: "failed to read selected image data"])
+                                }
+                    
+                    guard let compressedData = firebaseFunctions.compressImage(uiImage),
+                          let compressedImage = UIImage(data: compressedData) else {
+                        throw NSError(domain: "ProfileView", code: -1,
+                                      userInfo: [NSLocalizedDescriptionKey: "failed to ompress image"])
                     }
+                    
                     // Optimistically show selected image
-                    profileImage = Image(uiImage: uiImage)
-                    if let user = firebaseFunctions.currentUser {
-                        _ = try await firebaseFunctions.uploadProfileImage(data, for: userID)
+                    profileImage = Image(uiImage: compressedImage)
+                    
+                    try await firebaseFunctions.uploadProfileImage(compressedImage, for: userID)
+                    } catch {
+                        uploadError = "test \(error.localizedDescription)"
                     }
-                } catch {
-                    uploadError = error.localizedDescription
-                }
              
+                }
             }
+        }
+    
+    private func loadProfileImage(from base64: String) {
+        if let data = Data(base64Encoded: base64),
+           let uiImage = UIImage(data: data) {
+            profileImage = Image(uiImage: uiImage)
         }
     }
     
     private func loadProfileData() {
         guard let user = firebaseFunctions.currentUser, let userID = user.id else { return }
         
-        if let urlString = user.profileImageURL, let url = URL(string: urlString) {
-            profileImage = nil
-        }
-        
         // get routes
         firebaseFunctions.getRoutes(for: userID) { fetchedRoutes in
             self.routes = fetchedRoutes
         }
+        
+        firebaseFunctions.getProfileImageBase64(for: userID) { base64 in
+            if let base64 {
+                loadProfileImage(from: base64)
+            }
+        }
+
     }
 }
 
