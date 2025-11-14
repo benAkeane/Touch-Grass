@@ -8,10 +8,11 @@
 import SwiftUI
 import FirebaseAuth
 
-// enum to handle swapping between home and profile view
+// enum to handle swapping between home, profile, and search view
 enum MainView {
     case home
     case profile
+    case search
 }
 
 struct RootView: View {
@@ -21,18 +22,31 @@ struct RootView: View {
     var body: some View {
         Group {
             if firebaseFunctions.currentUser == nil {
-                LoginView() // Show login screen if user isn't currently logged in
+                AnyView(LoginView()) // Show login screen if user isn't currently logged in
             } else {
-                if currentView == .home {
-                    ContentView(profileSwap: { currentView = .profile })
-                } else if currentView == .profile {
+                switch currentView {
+                case .home:
+                    ContentView(
+                        profileSwap: { currentView = .profile },
+                        searchSwap: { currentView = .search }
+                    )
+                case .profile:
                     ProfileView(onBack: { currentView = .home })
+                case .search:
+                    NavigationStack {
+                        SearchView()
+                            .toolbar {
+                                ToolbarItem(placement: .navigationBarLeading) {
+                                    Button("⬅️") {
+                                        currentView = .home
+                                    }
+                                }
+                            }
+                    }
                 }
             }
         }
-        .onAppear {
-            firebaseFunctions.signOut()
-        }
+        .onAppear { firebaseFunctions.signOut() }
     }
 }
 

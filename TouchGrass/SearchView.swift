@@ -1,4 +1,3 @@
-//
 //  SearchView.swift
 //  TouchGrass
 //
@@ -7,16 +6,18 @@
 
 import SwiftUI
 
-//struct SearchView: View {
-//    @State private var searchText = ""
-//    
-//    var body: some View {
-//        NavigationStack {
-//            Spacer().frame(height: 20)
-//        }
-//    }
-//    
-//    var allUsers: [String] {
-//        
-//    }
-//}
+// TODO: FINISH SearchView
+struct SearchView: View {
+    @EnvironmentObject var firebaseFunctions: FirebaseFunctions
+    @State private var searchText = ""
+    
+    var body: some View {
+        
+    }
+}
+            
+
+#Preview {
+    SearchView()
+        .environmentObject(FirebaseFunctions())
+}

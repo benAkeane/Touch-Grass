@@ -15,6 +15,7 @@ struct ContentView: View {
     @State private var cameraPosition: MapCameraPosition = .automatic
     @State private var mapConfiguration = MKStandardMapConfiguration(elevationStyle: .realistic, emphasisStyle: .default)
     var profileSwap: () -> Void = {}
+    var searchSwap: () -> Void = {}
         
     var body: some View {
         ZStack {
@@ -47,6 +48,14 @@ struct ContentView: View {
                             .padding()
                     }
                     Spacer() // pushes button to left
+                    
+                    Button {
+                        searchSwap()
+                    } label: {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 50))
+                            .padding()
+                    }
                 }
                 Spacer() // pushes button to top
             }
