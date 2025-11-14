@@ -20,33 +20,25 @@ struct RootView: View {
     @State private var currentView: MainView = .home
     
     var body: some View {
-        Group {
-            if firebaseFunctions.currentUser == nil {
-                AnyView(LoginView()) // Show login screen if user isn't currently logged in
-            } else {
-                switch currentView {
-                case .home:
-                    ContentView(
-                        profileSwap: { currentView = .profile },
-                        searchSwap: { currentView = .search }
-                    )
-                case .profile:
-                    ProfileView(onBack: { currentView = .home })
-                case .search:
-                    NavigationStack {
-                        SearchView()
-                            .toolbar {
-                                ToolbarItem(placement: .navigationBarLeading) {
-                                    Button("⬅️") {
-                                        currentView = .home
-                                    }
-                                }
-                            }
-                    }
+        if firebaseFunctions.currentUser == nil {
+            LoginView() // Show login screen if user isn't currently logged in
+        } else {
+            switch currentView {
+            case .home:
+                ContentView(
+                    profileSwap: { currentView = .profile },
+                    searchSwap: { currentView = .search }
+                )
+                
+            case .profile:
+                ProfileView(onBack: { currentView = .home })
+                
+            case .search:
+                NavigationStack {
+                    SearchView(onBack: { currentView = .home })
                 }
             }
         }
-        .onAppear { firebaseFunctions.signOut() }
     }
 }
 

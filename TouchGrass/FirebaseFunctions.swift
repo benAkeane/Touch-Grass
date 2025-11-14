@@ -18,6 +18,7 @@ class FirebaseFunctions: ObservableObject {
     @Published var authUser: FirebaseAuth.User?
     @Published var currentUser: User?
     
+    
     // When authentication state changes, store current user
     init() {
         Auth.auth().addStateDidChangeListener { _, user in
@@ -104,10 +105,33 @@ class FirebaseFunctions: ObservableObject {
         }
     }
     
-    // current function for adding a route to the firestore database
-    // not tested yet...
-    // uses the route struct to store route name, coordinates (via geopoints), and timestamp
-    // geopoints should be work with firebase (but not tested yet, so im not sure)
+    
+    // get all users (used in search functionality)
+    func getAllUsers() async -> [String] {
+        do {
+            let snapshot = try await db.collection("users").getDocuments()
+            return snapshot.documents.compactMap { $0["username"] as? String }
+        } catch {
+            print("error getting usernames")
+            return []
+        }
+    }
+    
+    
+    // get a user by their uid (for use in search functionality)
+    func getUserByID(_ uid: String) async throws -> User {
+        let ref = db.collection("users").document(uid)
+        let snapshot = try await ref.getDocument()
+        
+        guard snapshot.exists else {
+            throw NSError(domain: "FirebaseFunctions", code: 404, userInfo: [NSLocalizedDescriptionKey: "user not found"])
+        }
+        
+        return try snapshot.data(as: User.self)
+    }
+    
+    
+    // Adds a route to the firestore database by storing the coordinates as geopoints
     func saveRoute(for userID: String, name: String, coordinates: [CLLocationCoordinate2D]) {
         let geoPoints = coordinates.map { GeoPoint(latitude: $0.latitude, longitude: $0.longitude) }
         let route = Route(
@@ -150,6 +174,7 @@ class FirebaseFunctions: ObservableObject {
             }
     }
     
+    
     // Uploads a profile image to Firebase Storage and stores its download URL in Firestore under the user's document.
     func uploadProfileImage(_ image: UIImage, for userID: String) async throws {
         // compress image
@@ -165,6 +190,8 @@ class FirebaseFunctions: ObservableObject {
             .setData(["profileImageBase64": base64ConvertedString], merge: true)
     }
     
+    
+    // getter for the stored profile image
     func getProfileImageBase64(for userID: String, passed: @escaping (String?) -> Void) {
         db.collection("users").document(userID).getDocument { doc, error in
             if let error = error {
@@ -178,6 +205,15 @@ class FirebaseFunctions: ObservableObject {
     }
     
     
+    // converts the stored base 64 image into a SwiftUI image
+    func decodeProfileImageBase64(from base64: String?) -> UIImage? {
+        guard let base64 = base64,
+              let data = Data(base64Encoded: base64) else { return nil }
+        return UIImage(data: data)
+    }
+    
+    
+    // search fucntion (not tested / temporary)
     func searchUsers(by username: String, passed: @escaping ([User]) -> Void) {
         let usersQuery = db.collection("users")
             .whereField("username", isGreaterThanOrEqualTo: username)
@@ -199,7 +235,9 @@ class FirebaseFunctions: ObservableObject {
     }
     
     
+    // compress the users selected profile image so it can be stored on firebase
     func compressImage(_ image: UIImage) -> Data? {
+        // had to make it smaller than firebases maxsize since the encoded string gets larger when converted to base64
         let maxSize: Int = 700_000
         var compression: CGFloat = 1.0
         guard var imageData = image.jpegData(compressionQuality: compression) else { return nil }
