@@ -36,6 +36,20 @@ struct ContentView: View {
                         Marker("End", coordinate: end)
                     }
                 }
+                
+                ForEach(manager.photoPins) { pin in
+                        Annotation("Photo", coordinate: pin.coordinate) {
+                            Image(systemName: "camera.circle.fill")
+                                .font(.system(size: 30))
+                                .foregroundColor(.red)
+                                .background(.white.opacity(0.9))
+                                .clipShape(Circle())
+                                .shadow(radius: 2)
+                                .onTapGesture {
+                                    // TODO: display picture
+                                }
+                        }
+                    }
             }
             .edgesIgnoringSafeArea(.all)
             
@@ -69,8 +83,7 @@ struct ContentView: View {
             HStack {
                 Spacer()
                 Button {
-                    //temporary until we add camera functionality
-                    print("")
+                    manager.dropPhotoPin()
                 } label: {
                     Image(systemName: "camera.fill").font(.system(size: 50))
                 }
