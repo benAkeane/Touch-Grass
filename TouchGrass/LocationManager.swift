@@ -8,6 +8,16 @@
 import MapKit
 import FirebaseAuth
 
+struct PhotoPin: Identifiable {
+    let id = UUID()
+    let coordinate: CLLocationCoordinate2D
+    let timestamp = Date()
+    // will use later to link to a picture
+    var photoID: String {
+        return id.uuidString
+    }
+}
+
 final class LocationManager: NSObject, ObservableObject {
     private let locationManager = CLLocationManager()
     
@@ -18,6 +28,8 @@ final class LocationManager: NSObject, ObservableObject {
     
     @Published var isRecording = false
     @Published var recordedRoute: [CLLocationCoordinate2D] = []
+    
+    @Published var photoPins: [PhotoPin] = []
     
     override init() {
         super.init()
@@ -43,6 +55,7 @@ final class LocationManager: NSObject, ObservableObject {
     
     func startRecording() {
         recordedRoute.removeAll()
+        photoPins.removeAll()
         isRecording = true
         locationManager.startUpdatingLocation()
     }
@@ -54,6 +67,16 @@ final class LocationManager: NSObject, ObservableObject {
         guard let userID = firebaseFunctions.currentUser?.id else { return }
         firebaseFunctions.saveRoute(for: userID, name: "Route \(Date())", coordinates: recordedRoute)
     }
+    
+    func dropPhotoPin() {
+            guard let location = locationManager.location?.coordinate else {
+                print("Location not available to drop a pin.")
+                return
+            }
+            let newPin = PhotoPin(coordinate: location)
+            photoPins.append(newPin)
+            print("Dropped pin at: (\(location.latitude), \(location.longitude))")
+        }
 }
 
 extension LocationManager: CLLocationManagerDelegate {
