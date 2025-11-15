@@ -69,11 +69,6 @@ extension LocationManager: CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
         
-        region = MKCoordinateRegion(
-            center: location.coordinate,
-            span: .init(latitudeDelta: 0.01, longitudeDelta: 0.01)
-        )
-        
         if isRecording {
             recordedRoute.append(location.coordinate)
         }

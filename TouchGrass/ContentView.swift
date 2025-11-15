@@ -12,7 +12,10 @@ struct ContentView: View {
     
     @StateObject var manager = LocationManager()
     @EnvironmentObject var firebaseFunctions: FirebaseFunctions
-    @State private var cameraPosition: MapCameraPosition = .userLocation(fallback: .automatic)
+    @State private var cameraPosition: MapCameraPosition = .userLocation(
+            followsHeading: true,
+            fallback: .automatic
+        )
     @State private var mapConfiguration = MKStandardMapConfiguration(elevationStyle: .realistic, emphasisStyle: .default)
     var profileSwap: () -> Void = {}
     var searchSwap: () -> Void = {}
@@ -73,10 +76,13 @@ struct ContentView: View {
                 }
                 Spacer()
                 Button {
-                    print("TODO")
+                    cameraPosition = .userLocation(
+                                        followsHeading: true,
+                                        fallback: .automatic
+                                    )
                     
                 } label: {
-                    Image(systemName: "house.fill").font(.system(size: 50))
+                    Image(systemName: "location.fill").font(.system(size: 50))
                 }
                 Spacer()
                 Button {
