@@ -1,15 +1,11 @@
 import SwiftUI
 import MapKit
-
-// RouteDetailView displays the details of a specific Route passed from ProfileView.
-// It avoids using any sample data and renders whatever is available on the provided Route.
-// This implementation is defensive to compile even if some Route properties are missing in your model.
-// Adjust property access as needed to match your actual Route definition.
+import FirebaseFirestore
 
 struct RouteDetailView: View {
     let route: Route
 
-    // Derived region from route coordinates if available; falls back to a default world region.
+    // Derived region from route coordinates if available
     @State private var region: MKCoordinateRegion = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 0, longitude: 0),
         span: MKCoordinateSpan(latitudeDelta: 60, longitudeDelta: 60)
@@ -26,14 +22,14 @@ struct RouteDetailView: View {
                     .font(.largeTitle)
                     .bold()
 
-                // Date
+                // Date of route
                 if let date = routeDate {
                     Text(date.formatted(date: .abbreviated, time: .shortened))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
 
-                // Stats
+                // Stats (not currently displaying, not sure why)
                 if hasAnyStats {
                     HStack(spacing: 16) {
                         if let distance = routeDistance {
@@ -49,17 +45,20 @@ struct RouteDetailView: View {
                 // Map
                 if !mapPolyline.isEmpty {
                     Map(initialPosition: .region(region)) {
-                        MapPolyline(coordinates: mapPolyline)
-                            .stroke(.blue, lineWidth: 4)
-
+                        MapPolyline(coordinates: mapPolyline) .stroke(.blue, lineWidth: 4)
+                        
+                        
+                        // Start ping
                         if let start = mapPolyline.first {
                             Annotation("Start", coordinate: start) {
                                 ZStack {
+                                    
                                     Circle().fill(Color.green).frame(width: 14, height: 14)
                                     Circle().stroke(Color.white, lineWidth: 2).frame(width: 14, height: 14)
                                 }
                             }
                         }
+                        // End ping
                         if let end = mapPolyline.last {
                             Annotation("End", coordinate: end) {
                                 ZStack {
@@ -69,10 +68,12 @@ struct RouteDetailView: View {
                             }
                         }
                     }
+                    
+                    
                     .frame(height: 300)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                 } else {
-                    // Graceful fallback when no coordinates are available
+                    // fallback when no coordinates are available
                     ZStack {
                         RoundedRectangle(cornerRadius: 12)
                             .fill(Color.gray.opacity(0.15))
@@ -87,16 +88,6 @@ struct RouteDetailView: View {
                     .frame(height: 200)
                 }
 
-                // Optional notes or metadata section placeholder
-                if let notes = routeNotes, !notes.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Notes")
-                            .font(.headline)
-                        Text(notes)
-                            .font(.body)
-                    }
-                }
-
                 Spacer(minLength: 12)
             }
             .padding()
@@ -107,11 +98,13 @@ struct RouteDetailView: View {
     }
 }
 
-// MARK: - Helpers
+// -------- HELPERS --------
+
+
 private extension RouteDetailView {
     var routeName: String {
-        // Try common property names; fall back to a generic label
-        // Replace/trim as needed to match your Route type.
+        // Very defensive way to get routeName since I kept getting errors/crashes doing it normally
+        // Hence I am using swift mirror to ensure safety.
         if let mirrorName = Mirror(reflecting: route).children.first(where: { $0.label == "name" })?.value as? String {
             return mirrorName
         }
@@ -119,7 +112,7 @@ private extension RouteDetailView {
     }
 
     var routeDate: Date? {
-        // Attempt to read a `date` property
+        // Read date property defensively
         if let date = Mirror(reflecting: route).children.first(where: { $0.label == "date" })?.value as? Date {
             return date
         }
@@ -129,8 +122,9 @@ private extension RouteDetailView {
     var routeDistance: String? {
         // Check for typical distance representations (meters/kilometers as Double or Int)
         if let meters = Mirror(reflecting: route).children.first(where: { $0.label == "distance" })?.value as? Double {
-            if meters >= 1000 { return String(format: "%.2f km", meters / 1000.0) }
+            if meters >= 1000 { return String(format: "%.2f km",  meters / 1000.0) }
             return String(format: "%.0f m", meters)
+            
         }
         if let metersInt = Mirror(reflecting: route).children.first(where: { $0.label == "distance" })?.value as? Int {
             if metersInt >= 1000 { return String(format: "%.2f km", Double(metersInt) / 1000.0) }
@@ -150,31 +144,37 @@ private extension RouteDetailView {
         return nil
     }
 
-    var routeNotes: String? {
-        if let notes = Mirror(reflecting: route).children.first(where: { $0.label == "notes" })?.value as? String {
-            return notes
-        }
-        return nil
-    }
+    
 
     var hasAnyStats: Bool {
         routeDistance != nil || routeDuration != nil
     }
 
     func configureFromRoute() {
-        // Attempt to read an array of coordinates on common property names like `coordinates` or `locations`.
-        // Supported shapes: [CLLocationCoordinate2D], [CLLocation], or an array of dictionaries with lat/lon.
+        // Attempt to read an array of coordinates on common property names.
         let children = Array(Mirror(reflecting: route).children)
 
+        // Firestore GeoPoints to CLLocationCoordinate2D
+        if let geoPoints = children.first(where: { $0.label == "coordinates" })?.value as? [GeoPoint] {
+            let coords = geoPoints.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
+            setupMap(with: coords)
+            return
+        }
+
+        // Native coordinates already in CLLocationCoordinate2D
         if let coords = children.first(where: { $0.label == "coordinates" })?.value as? [CLLocationCoordinate2D] {
             setupMap(with: coords)
             return
         }
+
+        // Array of CLLocation
         if let locations = children.first(where: { $0.label == "locations" })?.value as? [CLLocation] {
             let coords = locations.map { $0.coordinate }
             setupMap(with: coords)
             return
         }
+
+        // Array of dictionaries with lat/lon
         if let points = children.first(where: { $0.label == "coordinates" || $0.label == "points" || $0.label == "path" })?.value as? [[String: Double]] {
             let coords = points.compactMap { dict -> CLLocationCoordinate2D? in
                 guard let lat = dict["latitude"], let lon = dict["longitude"] else { return nil }
@@ -184,7 +184,7 @@ private extension RouteDetailView {
             return
         }
 
-        // If we have individual start/end lat/longs
+        // Individual start/end lat/longs
         if let startLat = children.first(where: { $0.label == "startLatitude" })?.value as? Double,
            let startLon = children.first(where: { $0.label == "startLongitude" })?.value as? Double,
            let endLat = children.first(where: { $0.label == "endLatitude" })?.value as? Double,
@@ -227,7 +227,5 @@ private extension RouteDetailView {
 }
 
 #Preview {
-    // This preview uses a dummy wrapper to avoid referencing your actual Firebase data.
-    // Replace with a concrete Route if you have a sample model available.
-    Text("RouteDetailView Preview requires a Route instance from your app context")
+    Text("RouteDetailView can only be seen when you fully run the app/simulator")
 }

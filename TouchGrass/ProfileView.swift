@@ -103,22 +103,26 @@ struct ProfileView: View {
                                 .padding()
                         } else {
                             ForEach(routes) { route in
-                                HStack {
-                                    VStack(alignment: .leading) {
-                                        Text(route.name)
-                                            .font(.headline)
-                                        Text(route.date.formatted(date: .abbreviated, time: .shortened))
-                                            .font(.subheadline)
-                                            .foregroundColor(.gray)
+                                NavigationLink {
+                                    RouteDetailView(route: route)
+                                } label: {
+                                    HStack {
+                                        VStack(alignment: .leading) {
+                                            Text(route.name)
+                                                .font(.headline)
+                                            Text(route.date.formatted(date: .abbreviated, time: .shortened))
+                                                .font(.subheadline)
+                                                .foregroundColor(.gray)
+                                        }
+                                        Spacer()
+                                        Image(systemName: "map")
+                                            .font(.title2)
+                                            .foregroundColor(.blue)
                                     }
-                                    Spacer()
-                                    Image(systemName: "map")
-                                        .font(.title2)
-                                        .foregroundColor(.blue)
+                                    .padding()
+                                    .background(Color(.gray))
+                                    .cornerRadius(10)
                                 }
-                                .padding()
-                                .background(Color(.gray))
-                                .cornerRadius(10)
                             }
                         }
                     }
