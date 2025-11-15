@@ -12,14 +12,14 @@ struct ContentView: View {
     
     @StateObject var manager = LocationManager()
     @EnvironmentObject var firebaseFunctions: FirebaseFunctions
-    @State private var cameraPosition: MapCameraPosition = .automatic
+    @State private var cameraPosition: MapCameraPosition = .userLocation(fallback: .automatic)
     @State private var mapConfiguration = MKStandardMapConfiguration(elevationStyle: .realistic, emphasisStyle: .default)
     var profileSwap: () -> Void = {}
     var searchSwap: () -> Void = {}
         
     var body: some View {
         ZStack {
-            Map(position: .constant(.region(manager.region))) {
+            Map(position: $cameraPosition) {
                 UserAnnotation()
                 if !manager.recordedRoute.isEmpty {
                     MapPolyline(coordinates: manager.recordedRoute)
@@ -35,7 +35,6 @@ struct ContentView: View {
                 }
             }
             .edgesIgnoringSafeArea(.all)
-
             
             VStack {
                 HStack {
