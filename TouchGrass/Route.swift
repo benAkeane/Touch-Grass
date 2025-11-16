@@ -13,10 +13,17 @@ struct Route: Identifiable, Codable {
     @DocumentID var id: String?
     var name: String
     var coordinates: [GeoPoint]
+    var photoPinLocations: [GeoPoint]?
     var date: Date
     
     // Converts firebase geopoints into CLLocationCoordinate2D (what we use in LocationManager)
     var coordinatePoints: [CLLocationCoordinate2D] {
         coordinates.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
     }
+    
+    var routePhotoPins: [PhotoPin] {
+            photoPinLocations?.compactMap { location in
+                PhotoPin(coordinate: CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude))
+            } ?? []
+        }
 }

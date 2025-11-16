@@ -67,6 +67,20 @@ struct RouteDetailView: View {
                                 }
                             }
                         }
+                        ForEach(route.routePhotoPins) { pin in
+                            Annotation("Photo", coordinate: pin.coordinate) {
+                                Image(systemName: "camera.circle.fill")
+                                    .font(.system(size: 30))
+                                    .foregroundColor(.purple)
+                                    .background(.white.opacity(0.9))
+                                    .clipShape(Circle())
+                                    .shadow(radius: 2)
+                                    .onTapGesture {
+                                        // TODO: display picture
+                                        print("Tapped photo pin at \(pin.coordinate.latitude), \(pin.coordinate.longitude)")
+                                    }
+                            }
+                        }
                     }
                     
                     

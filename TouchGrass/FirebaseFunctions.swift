@@ -132,12 +132,13 @@ class FirebaseFunctions: ObservableObject {
     
     
     // Adds a route to the firestore database by storing the coordinates as geopoints
-    func saveRoute(for userID: String, name: String, coordinates: [CLLocationCoordinate2D]) {
+    func saveRoute(for userID: String, name: String, coordinates: [CLLocationCoordinate2D], photoPinLocations: [GeoPoint]? = nil) {
         let geoPoints = coordinates.map { GeoPoint(latitude: $0.latitude, longitude: $0.longitude) }
         let route = Route(
             id: nil,
             name: name,
             coordinates: geoPoints,
+            photoPinLocations: photoPinLocations,
             date: Date()
         )
         

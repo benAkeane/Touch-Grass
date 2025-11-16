@@ -7,6 +7,7 @@
 
 import MapKit
 import FirebaseAuth
+import FirebaseFirestore
 
 struct PhotoPin: Identifiable {
     let id = UUID()
@@ -65,7 +66,12 @@ final class LocationManager: NSObject, ObservableObject {
         locationManager.stopUpdatingLocation()
         
         guard let userID = firebaseFunctions.currentUser?.id else { return }
-        firebaseFunctions.saveRoute(for: userID, name: "Route \(Date())", coordinates: recordedRoute)
+        
+        let pinGeoPoints = photoPins.map { GeoPoint(latitude: $0.coordinate.latitude, longitude: $0.coordinate.longitude) }
+        
+        firebaseFunctions.saveRoute(for: userID, name: "Route \(Date())", coordinates: recordedRoute, photoPinLocations: pinGeoPoints)
+        
+//        photoPins = []
     }
     
     func dropPhotoPin() {
