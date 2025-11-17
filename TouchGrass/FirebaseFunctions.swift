@@ -118,18 +118,20 @@ class FirebaseFunctions: ObservableObject {
     }
     
     
-    // get a user by their uid (for use in search functionality)
-    func getUserByID(_ uid: String) async throws -> User {
-        let ref = db.collection("users").document(uid)
-        let snapshot = try await ref.getDocument()
-        
-        guard snapshot.exists else {
-            throw NSError(domain: "FirebaseFunctions", code: 404, userInfo: [NSLocalizedDescriptionKey: "user not found"])
+    // get a user uid by their username (for use in search functionality)
+    func getUserIdFromUsername(_ username: String) async -> String? {
+        do {
+            let snapshot = try await db.collection("users")
+                .whereField("username", isEqualTo: username)
+                .getDocuments()
+            
+            return snapshot.documents.first?.documentID
+        } catch {
+            print("error getting userID from username: \(error.localizedDescription)")
+            return nil
         }
-        
-        return try snapshot.data(as: User.self)
     }
-    
+
     
     // Adds a route to the firestore database by storing the coordinates as geopoints
     func saveRoute(for userID: String, name: String, coordinates: [CLLocationCoordinate2D], photoPinLocations: [GeoPoint]? = nil) {

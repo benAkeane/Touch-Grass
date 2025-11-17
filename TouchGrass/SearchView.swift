@@ -11,6 +11,7 @@ struct SearchView: View {
     @EnvironmentObject var firebaseFunctions: FirebaseFunctions
     @State private var searchText = ""
     @State private var usernames: [String] = []
+    @State private var selectedUser: String? = nil
     
     var onBack: () -> Void
     
@@ -37,8 +38,7 @@ struct SearchView: View {
                 
                 List(filteredUsernames, id: \.self) { username in
                     Button {
-                        // TODO: take the user to another user's profile view
-                        print("selected: \(username)")
+                        selectedUser = username
                     } label: {
                         Text(username)
                     }
@@ -52,12 +52,18 @@ struct SearchView: View {
                     usernames = await firebaseFunctions.getAllUsers()
                 }
             }
+            .navigationDestination(item: $selectedUser) { username in
+                SearchedUserProfileView(username: username)
+                    .environmentObject(firebaseFunctions)
+            }
         }
     }
     
     var filteredUsernames: [String] {
+        // Displays all usernames if search text field is empty for testing purposes
         if searchText.isEmpty {
             return usernames
+            // return [] // shows nothing until user types
         }
         
         return usernames.filter { $0.lowercased().contains(searchText.lowercased()) }

@@ -86,6 +86,7 @@ struct ProfileView: View {
                 if let username = firebaseFunctions.currentUser?.username {
                     Text(username)
                         .font(.largeTitle)
+                        .bold()
                 }
                 
                 // ----- Code for routes below -----
