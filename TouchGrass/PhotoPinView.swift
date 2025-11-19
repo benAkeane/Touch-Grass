@@ -18,8 +18,8 @@ struct PhotoPinView: View {
     @State private var displayImage: Image? = nil
     @State private var errorMessage: String? = nil
     
-    // If true for RouteDetailView
-    // If false for ContentView recording
+    // if true for RouteDetailView
+    // if false for ContentView recording
     var isReadOnly: Bool = false
 
     var body: some View {
@@ -64,7 +64,7 @@ struct PhotoPinView: View {
                             }
                     }
                 }
-                // Picker Button (Only shows if editing is allowed)
+                // picker button (only shows if editing is allowed)
                 if !isReadOnly {
                     PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
                         HStack {
