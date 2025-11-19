@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  TouchGrass
-//
-//  Created by Ben Keane on 10/8/25.
-//
-
 import SwiftUI
 import MapKit
 
@@ -13,22 +6,28 @@ struct ContentView: View {
     @StateObject var manager = LocationManager()
     @EnvironmentObject var firebaseFunctions: FirebaseFunctions
     @State private var cameraPosition: MapCameraPosition = .userLocation(
-            followsHeading: true,
-            fallback: .automatic
-        )
+        followsHeading: true,
+        fallback: .automatic
+    )
     @State private var selectedPin: PhotoPin?
-    @State private var mapConfiguration = MKStandardMapConfiguration(elevationStyle: .realistic, emphasisStyle: .default)
+    @State private var mapConfiguration = MKStandardMapConfiguration(
+        elevationStyle: .realistic,
+        emphasisStyle: .default
+    )
+
     var profileSwap: () -> Void = {}
     var searchSwap: () -> Void = {}
-        
+
     var body: some View {
         ZStack {
             Map(position: $cameraPosition) {
                 UserAnnotation()
+
                 if !manager.recordedRoute.isEmpty {
                     MapPolyline(coordinates: manager.recordedRoute)
                         .stroke(.blue, lineWidth: 4)
                 }
+
                 if !manager.isRecording && !manager.recordedRoute.isEmpty {
                     if let start = manager.recordedRoute.first {
                         Marker("Start", coordinate: start)
@@ -37,15 +36,16 @@ struct ContentView: View {
                         Marker("End", coordinate: end)
                     }
                 }
-                
+
                 ForEach(manager.photoPins) { pin in
                     Annotation("Photo", coordinate: pin.coordinate) {
                         Image(systemName: "camera.circle.fill")
-                            .font(.system(size: 30))
-                            .foregroundColor(pin.imageData != nil ? .green : .red) // Green if photo exists, red if empty
-                            .background(.white.opacity(0.9))
+                            .font(.system(size: 28))
+                            .foregroundColor(pin.imageData != nil ? .green : .red)
+                            .padding(6)
+                            .background(.thinMaterial)
                             .clipShape(Circle())
-                            .shadow(radius: 2)
+                            .shadow(radius: 3)
                             .onTapGesture {
                                 selectedPin = pin
                             }
@@ -53,78 +53,86 @@ struct ContentView: View {
                 }
             }
             .edgesIgnoringSafeArea(.all)
-            
+
+            // MARK: - TOP BUTTONS
             VStack {
                 HStack {
-                    // when list button is clicked take user to profile view (temporary)
-                    Button {
+                    circularTopButton(icon: "list.dash") {
                         profileSwap()
-                    } label: {
-                        Image(systemName: "list.dash")
-                            .font(.system(size: 50))
-                            .padding()
                     }
-                    Spacer() // pushes button to left
-                    
-                    Button {
+                    Spacer()
+                    circularTopButton(icon: "magnifyingglass") {
                         searchSwap()
-                    } label: {
-                        Image(systemName: "magnifyingglass")
-                            .font(.system(size: 50))
-                            .padding()
                     }
                 }
-                Spacer() // pushes button to top
+                .padding(.horizontal)
+                .padding(.top, 12)
+
+                Spacer()
             }
         }
-        
-        // Sheet to show pin details/add photo
         .sheet(item: $selectedPin) { pin in
             if let index = manager.photoPins.firstIndex(where: { $0.id == pin.id }) {
                 PhotoPinView(pin: $manager.photoPins[index], isReadOnly: false)
             }
         }
-        
-        // container for buttons
+
+        // MARK: - FLOATING BOTTOM CONTROLS
         .safeAreaInset(edge: .bottom) {
-            HStack {
-                Spacer()
-                Button {
+            HStack(spacing: 40) {
+                bottomAction(icon: "camera.fill") {
                     if let newPin = manager.dropPhotoPin() {
                         selectedPin = newPin
                     }
-                } label: {
-                    Image(systemName: "camera.fill").font(.system(size: 50))
                 }
-                Spacer()
-                Button {
+
+                bottomAction(icon: "location.fill") {
                     cameraPosition = .userLocation(
-                                        followsHeading: true,
-                                        fallback: .automatic
-                                    )
-                    
-                } label: {
-                    Image(systemName: "location.fill").font(.system(size: 50))
+                        followsHeading: true,
+                        fallback: .automatic
+                    )
                 }
-                Spacer()
-                Button {
+
+                bottomAction(icon: manager.isRecording ? "stop.fill" : "play.fill") {
                     if manager.isRecording {
                         manager.stopRecording(firebaseFunctions: firebaseFunctions)
                     } else {
                         manager.startRecording()
                     }
-                } label: {
-                    Image(systemName: manager.isRecording ? "stop.fill" : "play.fill")
-                        .font(.system(size: 50))
                 }
-                Spacer()
-                
             }
-            .padding(.top)
-            .background(.thinMaterial)
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity)
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .padding(.horizontal, 16)
+        }
+    }
+
+    private func circularTopButton(icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: icon)
+                .font(.system(size: 22))
+                .foregroundStyle(.primary)
+                .padding(12)
+                .background(.thinMaterial)
+                .clipShape(Circle())
+                .shadow(radius: 2)
+        }
+    }
+
+    private func bottomAction(icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: icon)
+                .font(.system(size: 32))
+                .padding(16)
+                .background(.thinMaterial)
+                .clipShape(Circle())
+                .shadow(radius: 3)
         }
     }
 }
+
 #Preview {
     ContentView()
 }
