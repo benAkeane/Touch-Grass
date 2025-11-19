@@ -4,7 +4,9 @@ import FirebaseFirestore
 
 struct RouteDetailView: View {
     let route: Route
-
+    
+    @State private var selectedPin: PhotoPin?
+    
     // Derived region from route coordinates if available
     @State private var region: MKCoordinateRegion = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 0, longitude: 0),
@@ -76,8 +78,7 @@ struct RouteDetailView: View {
                                     .clipShape(Circle())
                                     .shadow(radius: 2)
                                     .onTapGesture {
-                                        // TODO: display picture
-                                        print("Tapped photo pin at \(pin.coordinate.latitude), \(pin.coordinate.longitude)")
+                                        selectedPin = pin
                                     }
                             }
                         }
@@ -109,6 +110,9 @@ struct RouteDetailView: View {
         .navigationTitle("Route Details")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear(perform: configureFromRoute)
+        .sheet(item: $selectedPin) { pin in
+            PhotoPinView(pin: .constant(pin), isReadOnly: true)
+        }
     }
 }
 

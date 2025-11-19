@@ -134,25 +134,38 @@ class FirebaseFunctions: ObservableObject {
 
     
     // Adds a route to the firestore database by storing the coordinates as geopoints
-    func saveRoute(for userID: String, name: String, coordinates: [CLLocationCoordinate2D], photoPinLocations: [GeoPoint]? = nil) {
+    func saveRoute(for userID: String, name: String, coordinates: [CLLocationCoordinate2D], photoPins: [PhotoPin]) {
         let geoPoints = coordinates.map { GeoPoint(latitude: $0.latitude, longitude: $0.longitude) }
-        let route = Route(
-            id: nil,
-            name: name,
-            coordinates: geoPoints,
-            photoPinLocations: photoPinLocations,
-            date: Date()
-        )
-        
-        do {
-            try db.collection("users")
-                .document(userID)
-                .collection("routes")
-                .addDocument(from: route)
-            print("saved route")
-        } catch {
-            print("error saving route: \(error.localizedDescription)")
+        let photoPinData: [[String: Any]] = photoPins.map { pin in
+            var dict: [String: Any] = [
+                "latitude": pin.coordinate.latitude,
+                "longitude": pin.coordinate.longitude,
+                "title": pin.title
+            ]
+            
+            if let data = pin.imageData {
+                dict["imageBase64"] = data.base64EncodedString()
+            }
+            return dict
         }
+        
+        let routeData: [String: Any] = [
+            "name": name,
+            "coordinates": geoPoints,
+            "photoPins": photoPinData,
+            "date": Timestamp(date: Date())
+        ]
+        
+        db.collection("users")
+            .document(userID)
+            .collection("routes")
+            .addDocument(data: routeData) { error in
+                if let error = error {
+                    print("Error saving route: \(error.localizedDescription)")
+                } else {
+                    print("Saved route successfully")
+                }
+            }
     }
     
     

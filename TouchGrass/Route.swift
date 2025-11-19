@@ -13,17 +13,52 @@ struct Route: Identifiable, Codable {
     @DocumentID var id: String?
     var name: String
     var coordinates: [GeoPoint]
-    var photoPinLocations: [GeoPoint]?
+    
+    // Maps to "photoPins" in Firestore
+    var savedPhotoPins: [SavedPhotoPin]?
+    
     var date: Date
     
-    // Converts firebase geopoints into CLLocationCoordinate2D (what we use in LocationManager)
     var coordinatePoints: [CLLocationCoordinate2D] {
         coordinates.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
     }
     
     var routePhotoPins: [PhotoPin] {
-            photoPinLocations?.compactMap { location in
-                PhotoPin(coordinate: CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude))
-            } ?? []
+        guard let saved = savedPhotoPins else { return [] }
+        return saved.map { savedPin in
+            // Create the pin
+            var pin = PhotoPin(coordinate: CLLocationCoordinate2D(latitude: savedPin.latitude, longitude: savedPin.longitude))
+            
+            pin.title = savedPin.title ?? ""
+            
+            // Reconstruct the image data from Base64
+            if let base64 = savedPin.imageBase64 {
+                pin.imageData = Data(base64Encoded: base64)
+            }
+            return pin
         }
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case coordinates
+        case savedPhotoPins = "photoPins"
+        case date
+    }
+}
+
+struct SavedPhotoPin: Codable, Identifiable {
+    var id = UUID()
+    let latitude: Double
+    let longitude: Double
+    let imageBase64: String?
+    let title: String?
+
+    enum CodingKeys: String, CodingKey {
+        case latitude
+        case longitude
+        case imageBase64
+        case title
+    }
 }

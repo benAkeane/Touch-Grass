@@ -16,6 +16,7 @@ struct ContentView: View {
             followsHeading: true,
             fallback: .automatic
         )
+    @State private var selectedPin: PhotoPin?
     @State private var mapConfiguration = MKStandardMapConfiguration(elevationStyle: .realistic, emphasisStyle: .default)
     var profileSwap: () -> Void = {}
     var searchSwap: () -> Void = {}
@@ -38,18 +39,18 @@ struct ContentView: View {
                 }
                 
                 ForEach(manager.photoPins) { pin in
-                        Annotation("Photo", coordinate: pin.coordinate) {
-                            Image(systemName: "camera.circle.fill")
-                                .font(.system(size: 30))
-                                .foregroundColor(.red)
-                                .background(.white.opacity(0.9))
-                                .clipShape(Circle())
-                                .shadow(radius: 2)
-                                .onTapGesture {
-                                    // TODO: display picture
-                                }
-                        }
+                    Annotation("Photo", coordinate: pin.coordinate) {
+                        Image(systemName: "camera.circle.fill")
+                            .font(.system(size: 30))
+                            .foregroundColor(pin.imageData != nil ? .green : .red) // Green if photo exists, red if empty
+                            .background(.white.opacity(0.9))
+                            .clipShape(Circle())
+                            .shadow(radius: 2)
+                            .onTapGesture {
+                                selectedPin = pin
+                            }
                     }
+                }
             }
             .edgesIgnoringSafeArea(.all)
             
@@ -77,13 +78,21 @@ struct ContentView: View {
             }
         }
         
+        // Sheet to show pin details/add photo
+        .sheet(item: $selectedPin) { pin in
+            if let index = manager.photoPins.firstIndex(where: { $0.id == pin.id }) {
+                PhotoPinView(pin: $manager.photoPins[index], isReadOnly: false)
+            }
+        }
         
         // container for buttons
         .safeAreaInset(edge: .bottom) {
             HStack {
                 Spacer()
                 Button {
-                    manager.dropPhotoPin()
+                    if let newPin = manager.dropPhotoPin() {
+                        selectedPin = newPin
+                    }
                 } label: {
                     Image(systemName: "camera.fill").font(.system(size: 50))
                 }
