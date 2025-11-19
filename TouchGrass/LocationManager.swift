@@ -13,9 +13,11 @@ struct PhotoPin: Identifiable {
     let id = UUID()
     let coordinate: CLLocationCoordinate2D
     let timestamp = Date()
-    // will use later to link to a picture
-    var photoID: String {
-        return id.uuidString
+    var imageData: Data? = nil
+    var title: String = ""
+        
+    static func == (lhs: PhotoPin, rhs: PhotoPin) -> Bool {
+        return lhs.id == rhs.id
     }
 }
 
@@ -64,24 +66,28 @@ final class LocationManager: NSObject, ObservableObject {
     func stopRecording(firebaseFunctions: FirebaseFunctions) {
         isRecording = false
         locationManager.stopUpdatingLocation()
-        
+                
         guard let userID = firebaseFunctions.currentUser?.id else { return }
         
-        let pinGeoPoints = photoPins.map { GeoPoint(latitude: $0.coordinate.latitude, longitude: $0.coordinate.longitude) }
-        
-        firebaseFunctions.saveRoute(for: userID, name: "Route \(Date())", coordinates: recordedRoute, photoPinLocations: pinGeoPoints)
-        
-//        photoPins = []
+        firebaseFunctions.saveRoute(for: userID, name: "Route \(Date().formatted())", coordinates: recordedRoute, photoPins: photoPins)
     }
     
-    func dropPhotoPin() {
-            guard let location = locationManager.location?.coordinate else {
-                print("Location not available to drop a pin.")
-                return
+    @discardableResult
+    func dropPhotoPin() -> PhotoPin? {
+        guard let location = locationManager.location?.coordinate else {
+            print("Location not available to drop a pin.")
+            return nil
+        }
+        let newPin = PhotoPin(coordinate: location)
+        photoPins.append(newPin)
+        print("Dropped pin at: (\(location.latitude), \(location.longitude))")
+        return newPin
+    }
+    
+    func updatePin(_ pin: PhotoPin) {
+            if let index = photoPins.firstIndex(where: { $0.id == pin.id }) {
+                photoPins[index] = pin
             }
-            let newPin = PhotoPin(coordinate: location)
-            photoPins.append(newPin)
-            print("Dropped pin at: (\(location.latitude), \(location.longitude))")
         }
 }
 
