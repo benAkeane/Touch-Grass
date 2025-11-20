@@ -7,6 +7,8 @@
 
 import SwiftUI
 import PhotosUI
+import UIKit
+import AVFoundation
 
 struct PhotoPinView: View {
     @Binding var pin: PhotoPin
@@ -17,6 +19,8 @@ struct PhotoPinView: View {
     @State private var selectedItem: PhotosPickerItem? = nil
     @State private var displayImage: Image? = nil
     @State private var errorMessage: String? = nil
+    @State private var showCamera = false
+    @State private var showPermissionAlert = false
     
     // if true for RouteDetailView
     // if false for ContentView recording
@@ -58,25 +62,46 @@ struct PhotoPinView: View {
                                     Image(systemName: "camera")
                                         .font(.system(size: 50))
                                         .foregroundColor(.gray)
-                                    Text("No Photo Available")
+                                    Text("No Photo")
                                         .foregroundColor(.gray)
                                 }
                             }
                     }
                 }
-                // picker button (only shows if editing is allowed)
+                
+                // Buttons (only shows if editing is allowed)
                 if !isReadOnly {
-                    PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
-                        HStack {
-                            Image(systemName: "photo.badge.plus")
-                            Text(pin.imageData == nil ? "Select Photo" : "Change Photo")
+                    HStack(spacing: 12) {
+                        // Camera Button
+                        Button(action: {
+                            checkCameraPermission()
+                        }) {
+                            VStack {
+                                Image(systemName: "camera.fill")
+                                Text("Camera")
+                            }
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(UIImagePickerController.isSourceTypeAvailable(.camera) ? Color.blue : Color.gray)
+                            .cornerRadius(10)
                         }
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.blue)
-                        .cornerRadius(10)
+                        .disabled(!UIImagePickerController.isSourceTypeAvailable(.camera))
+                        
+                        // Library Button
+                        PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
+                            VStack {
+                                Image(systemName: "photo.on.rectangle")
+                                Text("Library")
+                            }
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.blue)
+                            .cornerRadius(10)
+                        }
                     }
                     .padding(.horizontal)
                 }
@@ -105,19 +130,97 @@ struct PhotoPinView: View {
                               let uiImage = UIImage(data: data) else {
                             throw NSError(domain: "PhotoPinView", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to read image"])
                         }
-                        
-                        guard let compressedData = firebaseFunctions.compressImage(uiImage),
-                              let compressedImage = UIImage(data: compressedData) else {
-                            throw NSError(domain: "PhotoPinView", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to compress image"])
-                        }
-                        
-                        pin.imageData = compressedData
-                        displayImage = Image(uiImage: compressedImage)
+                        processImage(uiImage)
                     } catch {
                         errorMessage = error.localizedDescription
                     }
                 }
             }
+            .sheet(isPresented: $showCamera) {
+                CameraInput { image in
+                    processImage(image)
+                }
+            }
+            .alert("Camera Access Required", isPresented: $showPermissionAlert) {
+                Button("Settings") {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("Please enable camera access in your device settings to take photos.")
+            }
+        }
+    }
+    
+    private func checkCameraPermission() {
+        let status = AVCaptureDevice.authorizationStatus(for: .video)
+        
+        switch status {
+        case .authorized:
+            showCamera = true
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { granted in
+                if granted {
+                    DispatchQueue.main.async {
+                        showCamera = true
+                    }
+                }
+            }
+        case .denied, .restricted:
+            showPermissionAlert = true
+        @unknown default:
+            break
+        }
+    }
+    
+    private func processImage(_ uiImage: UIImage) {
+        guard let compressedData = firebaseFunctions.compressImage(uiImage),
+              let compressedImage = UIImage(data: compressedData) else {
+            errorMessage = "Failed to compress image"
+            return
+        }
+        
+        pin.imageData = compressedData
+        displayImage = Image(uiImage: compressedImage)
+    }
+}
+
+struct CameraInput: UIViewControllerRepresentable {
+    var onImagePicked: (UIImage) -> Void
+    @Environment(\.dismiss) var dismiss
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = .camera
+        picker.delegate = context.coordinator
+        picker.allowsEditing = false
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(parent: self)
+    }
+
+    class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
+        let parent: CameraInput
+
+        init(parent: CameraInput) {
+            self.parent = parent
+        }
+
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            if let image = info[.originalImage] as? UIImage {
+                parent.onImagePicked(image)
+            }
+            parent.dismiss()
+        }
+        
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.dismiss()
         }
     }
 }
