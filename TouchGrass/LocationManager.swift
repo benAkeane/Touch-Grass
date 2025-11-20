@@ -22,6 +22,12 @@ struct PhotoPin: Identifiable {
     }
 }
 
+struct FinishedRoute {
+    let totalTime: TimeInterval
+    let coordinates: [CLLocationCoordinate2D]
+    let photoPins: [PhotoPin]
+}
+
 final class LocationManager: NSObject, ObservableObject {
     private let locationManager = CLLocationManager()
     
@@ -65,21 +71,15 @@ final class LocationManager: NSObject, ObservableObject {
         locationManager.startUpdatingLocation()
     }
     
-    func stopRecording(firebaseFunctions: FirebaseFunctions) {
+    func stopRecording() -> FinishedRoute? {
         isRecording = false
         locationManager.stopUpdatingLocation()
                 
-        guard let userID = firebaseFunctions.currentUser?.id else { return }
-        let totalTime: TimeInterval
+        guard let start = recordingStartDate else { return nil }
         
-        if let start = recordingStartDate {
-            totalTime = Date().timeIntervalSince(start) 
-        } else {
-            totalTime = 0
-        }
-        firebaseFunctions.saveRoute(
-            for: userID,
-            name: "Route \(Date().formatted())",
+        let totalTime = Date().timeIntervalSince(start)
+        
+        return FinishedRoute(
             totalTime: totalTime,
             coordinates: recordedRoute,
             photoPins: photoPins

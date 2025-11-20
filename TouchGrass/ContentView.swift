@@ -65,7 +65,7 @@ struct ContentView: View {
             }
             .edgesIgnoringSafeArea(.all)
 
-            // MARK: - TOP BUTTONS
+            // Top buttons
             VStack {
                 HStack {
                     circularTopButton(icon: "list.dash") {
@@ -88,7 +88,7 @@ struct ContentView: View {
             }
         }
 
-        // MARK: - FLOATING BOTTOM CONTROLS
+        // Bottom buttons
         .safeAreaInset(edge: .bottom) {
             HStack(spacing: 40) {
                 bottomAction(icon: "camera.fill") {
