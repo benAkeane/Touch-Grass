@@ -21,6 +21,9 @@ struct ContentView: View {
         elevationStyle: .realistic,
         emphasisStyle: .default
     )
+    @State private var showingRouteNamePrompt = false
+    @State private var newRouteName = ""
+    @State private var pendingRoute: FinishedRoute?
 
     // Soft green theme
     private let mintGreen = Color(red: 0.78, green: 0.93, blue: 0.80)
@@ -87,6 +90,36 @@ struct ContentView: View {
                 PhotoPinView(pin: $manager.photoPins[index], isReadOnly: false)
             }
         }
+        .sheet(isPresented: $showingRouteNamePrompt) {
+            VStack(spacing: 20) {
+                Text("Name Your Route")
+                    .font(.title2)
+                    .bold()
+                    .padding(.top, 10)
+                
+                TextField("Route name", text: $newRouteName)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.horizontal)
+                
+                Button("Save Route") {
+                    guard let pending = pendingRoute,
+                          let userID = firebaseFunctions.currentUser?.id else { return }
+                    
+                    firebaseFunctions.saveRoute(
+                        for: userID,
+                        name: newRouteName.isEmpty ? "Route" : newRouteName,
+                        totalTime: pending.totalTime,
+                        coordinates: pending.coordinates,
+                        photoPins: pending.photoPins
+                    )
+                    
+                    showingRouteNamePrompt = false
+                }
+                .buttonStyle(.borderedProminent)
+                .padding(.bottom, 20)
+            }
+            .presentationDetents([.height(240)])
+        }
 
         // Bottom buttons
         .safeAreaInset(edge: .bottom) {
@@ -108,7 +141,11 @@ struct ContentView: View {
 
                 bottomAction(icon: manager.isRecording ? "stop.fill" : "play.fill") {
                     if manager.isRecording {
-                        manager.stopRecording(firebaseFunctions: firebaseFunctions)
+                        if let finished = manager.stopRecording() {
+                            pendingRoute = finished
+                            newRouteName = ""
+                            showingRouteNamePrompt = true
+                        }
                     } else {
                         manager.startRecording()
                     }
