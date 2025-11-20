@@ -96,6 +96,8 @@ struct ContentView: View {
                         selectedPin = newPin
                     }
                 }
+                .disabled(!manager.isRecording)
+                .opacity(manager.isRecording ? 1.0 : 0.5)
 
                 bottomAction(icon: "location.fill") {
                     cameraPosition = .userLocation(
