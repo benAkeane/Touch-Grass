@@ -17,33 +17,56 @@ struct SearchView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(alignment: .leading) {
-                HStack {
-                    Button {
-                        onBack()
-                    } label: {
-                        Image(systemName: "chevron.left")
-                            .font(.title2)
-                            .foregroundColor(.blue)
-                    }
-                    Spacer()
-                }
-                .padding()
+            ZStack {
+                Color(.systemGreen).opacity(0.15)
+                    .ignoresSafeArea()
                 
-                TextField("Search for a username", text: $searchText)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(10)
+                VStack(alignment: .leading, spacing: 20) {
+                    
+                    // Back Button
+                    HStack {
+                        Button {
+                            onBack()
+                        } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.title2)
+                                .foregroundColor(.green)
+                                .padding(10)
+                                .background(.ultraThinMaterial)
+                                .cornerRadius(12)
+                                .shadow(radius: 4)
+                        }
+                        Spacer()
+                    }
                     .padding(.horizontal)
-                
-                List(filteredUsernames, id: \.self) { username in
-                    Button {
-                        selectedUser = username
-                    } label: {
-                        Text(username)
+                    .padding(.top)
+                    
+                    
+                    // Search Field
+                    TextField("Search for a username", text: $searchText)
+                        .padding()
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(14)
+                        .shadow(radius: 4)
+                        .padding(.horizontal)
+                    
+                    
+                    // List of users
+                    List(filteredUsernames, id: \.self) { username in
+                        Button {
+                            selectedUser = username
+                        } label: {
+                            HStack {
+                                Image(systemName: "person.crop.circle")
+                                    .foregroundColor(.green)
+                                
+                                Text(username)
+                            }
+                        }
                     }
+                    .scrollContentBackground(.hidden)
+                    .background(Color.clear)
                 }
-                .listStyle(.plain)
             }
             .navigationTitle("User Search")
             .navigationBarHidden(true)

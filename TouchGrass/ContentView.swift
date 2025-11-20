@@ -1,3 +1,10 @@
+//
+//  LoginView.swift
+//  TouchGrass
+//
+//  Created by Ben Keane on 10/8/25.
+//
+
 import SwiftUI
 import MapKit
 
@@ -15,6 +22,10 @@ struct ContentView: View {
         emphasisStyle: .default
     )
 
+    // Soft green theme
+    private let mintGreen = Color(red: 0.78, green: 0.93, blue: 0.80)
+    private let softGreen = Color(red: 0.35, green: 0.60, blue: 0.40)
+
     var profileSwap: () -> Void = {}
     var searchSwap: () -> Void = {}
 
@@ -25,7 +36,7 @@ struct ContentView: View {
 
                 if !manager.recordedRoute.isEmpty {
                     MapPolyline(coordinates: manager.recordedRoute)
-                        .stroke(.blue, lineWidth: 4)
+                        .stroke(softGreen, lineWidth: 4)
                 }
 
                 if !manager.isRecording && !manager.recordedRoute.isEmpty {
@@ -41,9 +52,9 @@ struct ContentView: View {
                     Annotation("Photo", coordinate: pin.coordinate) {
                         Image(systemName: "camera.circle.fill")
                             .font(.system(size: 28))
-                            .foregroundColor(pin.imageData != nil ? .green : .red)
+                            .foregroundColor(pin.imageData != nil ? softGreen : .red)
                             .padding(6)
-                            .background(.thinMaterial)
+                            .background(mintGreen.opacity(0.6))
                             .clipShape(Circle())
                             .shadow(radius: 3)
                             .onTapGesture {
@@ -103,9 +114,10 @@ struct ContentView: View {
             }
             .padding(.vertical, 12)
             .frame(maxWidth: .infinity)
-            .background(.ultraThinMaterial)
+            .background(mintGreen.opacity(0.8))
             .clipShape(RoundedRectangle(cornerRadius: 20))
             .padding(.horizontal, 16)
+            .shadow(color: softGreen.opacity(0.35), radius: 8, y: -2)
         }
     }
 
@@ -113,20 +125,21 @@ struct ContentView: View {
         Button(action: action) {
             Image(systemName: icon)
                 .font(.system(size: 22))
-                .foregroundStyle(.primary)
+                .foregroundColor(softGreen)
                 .padding(12)
-                .background(.thinMaterial)
+                .background(mintGreen.opacity(0.8))
                 .clipShape(Circle())
-                .shadow(radius: 2)
+                .shadow(radius: 3)
         }
     }
 
     private func bottomAction(icon: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: icon)
+                .foregroundColor(softGreen)
                 .font(.system(size: 32))
                 .padding(16)
-                .background(.thinMaterial)
+                .background(mintGreen.opacity(0.8))
                 .clipShape(Circle())
                 .shadow(radius: 3)
         }

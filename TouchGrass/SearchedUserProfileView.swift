@@ -17,69 +17,83 @@ struct SearchedUserProfileView: View {
     let username: String
     
     var body: some View {
-        VStack {
-            ZStack {
-                Group {
-                    if let profileImage = profileImage {
-                        profileImage
-                            .resizable()
-                            .scaledToFill()
-                    } else {
-                        Image("Profile")
-                            .resizable()
-                            .scaledToFill()
-                    }
-                }
-                .frame(width: 300, height: 300)
-                .clipShape(Circle())
-                .overlay(Circle().stroke(style: StrokeStyle(lineWidth: 4)))
-            }
-            .padding(.top)
-            
-            Text(username)
-                .font(.largeTitle)
-                .bold()
-            
-            Text("Past Routes")
-                .font(.title2)
-                .bold()
-                .padding(.top)
+        ZStack {
+            Color(.systemGreen).opacity(0.15)
+                .ignoresSafeArea()
             
             ScrollView {
-                VStack {
-                    if routes.isEmpty {
-                        Text("No routes yet")
-                            .foregroundColor(.gray)
-                            .padding()
-                    } else {
-                        ForEach(routes) { route in
-                            NavigationLink {
-                                RouteDetailView(route: route)
-                            } label: {
-                                HStack {
-                                    VStack(alignment: .leading) {
-                                        Text(route.name)
-                                            .font(.headline)
-                                        Text(route.date.formatted(date: .abbreviated, time: .shortened))
-                                            .font(.subheadline)
-                                            .foregroundColor(.gray)
-                                    }
-                                    Spacer()
-                                    Image(systemName: "map")
-                                        .font(.title2)
-                                        .foregroundColor(.blue)
-                                }
+                VStack(spacing: 25) {
+                    ZStack {
+                        Circle()
+                            .fill(.ultraThinMaterial)
+                            .frame(width: 300, height: 300)
+                            .shadow(radius: 12)
+                        Group {
+                            if let profileImage = profileImage {
+                                profileImage
+                                    .resizable()
+                                    .scaledToFill()
+                            } else {
+                                Image("Profile")
+                                    .resizable()
+                                    .scaledToFill()
+                            }
+                        }
+                        .frame(width: 260, height: 260)
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(Color.green, lineWidth: 4))
+                    }
+                    .padding(.top)
+                    Text(username)
+                        .font(.system(size: 38, weight: .bold))
+                        .foregroundColor(.green)
+                        .shadow(radius: 3)
+                    Text("Past Routes")
+                        .font(.title2.bold())
+                        .foregroundColor(.green)
+                        .padding(.top, 10)
+                    
+
+                    VStack(spacing: 15) {
+                        if routes.isEmpty {
+                            Text("No routes yet")
+                                .foregroundColor(.gray)
                                 .padding()
-                                .background(Color(.gray))
-                                .cornerRadius(10)
+                        } else {
+                            ForEach(routes) { route in
+                                NavigationLink {
+                                    RouteDetailView(route: route)
+                                } label: {
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(route.name)
+                                                .font(.headline)
+                                                .foregroundColor(.primary)
+                                            
+                                            Text(route.date.formatted(date: .abbreviated, time: .shortened))
+                                                .font(.subheadline)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        Image(systemName: "map")
+                                            .font(.title2)
+                                            .foregroundColor(.green)
+                                    }
+                                    .padding()
+                                    .background(.ultraThinMaterial)
+                                    .cornerRadius(15)
+                                    .shadow(radius: 4)
+                                }
                             }
                         }
                     }
+                    .padding(.horizontal)
+                    Spacer()
+                        .frame(height: 40)
                 }
-                .padding(.horizontal)
             }
-            
-            Spacer()
         }
         .onAppear {
             Task {
@@ -100,8 +114,8 @@ struct SearchedUserProfileView: View {
                 }
             }
             
-            firebaseFunctions.getRoutes(for: fetchedID) { FetchedRoutes in
-                self.routes = FetchedRoutes
+            firebaseFunctions.getRoutes(for: fetchedID) { fetchedRoutes in
+                self.routes = fetchedRoutes
             }
         }
     }
