@@ -31,18 +31,19 @@ struct RouteDetailView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                // Stats (not currently displaying, not sure why)
-                if hasAnyStats {
-                    HStack(spacing: 16) {
-                        if let distance = routeDistance {
-                            Label(distance, systemImage: "ruler")
-                        }
-                        if let duration = routeDuration {
+
+                Group {
+                    if let duration = routeDuration ?? routeTotalTime.map({ formatTime(seconds: Int($0)) }) {
+                        HStack(spacing: 16) {
                             Label(duration, systemImage: "clock")
                         }
+                    } else {
+                        Text("No stats available")
+                            .foregroundStyle(.secondary)
                     }
-                    .font(.body)
                 }
+                .font(.body)
+            
 
                 // Map
                 if !mapPolyline.isEmpty {
@@ -136,6 +137,15 @@ private extension RouteDetailView {
         }
         return nil
     }
+    var routeTotalTime: TimeInterval? {
+        let value = Mirror(reflecting: route).children.first(where: { $0.label == "totalTime" })?.value
+        if let d = value as? Double { return d }
+        if let i = value as? Int { return TimeInterval(i) }
+        if let s = value as? String, let numeric = Double(s.trimmingCharacters(in: .whitespacesAndNewlines)) {
+            return numeric
+        }
+        return nil
+    }
 
     var routeDistance: String? {
         // Check for typical distance representations (meters/kilometers as Double or Int)
@@ -162,11 +172,7 @@ private extension RouteDetailView {
         return nil
     }
 
-    
 
-    var hasAnyStats: Bool {
-        routeDistance != nil || routeDuration != nil
-    }
 
     func configureFromRoute() {
         // Attempt to read an array of coordinates on common property names.

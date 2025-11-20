@@ -13,6 +13,7 @@ struct PhotoPin: Identifiable {
     let id = UUID()
     let coordinate: CLLocationCoordinate2D
     let timestamp = Date()
+
     var imageData: Data? = nil
     var title: String = ""
         
@@ -31,8 +32,8 @@ final class LocationManager: NSObject, ObservableObject {
     
     @Published var isRecording = false
     @Published var recordedRoute: [CLLocationCoordinate2D] = []
-    
     @Published var photoPins: [PhotoPin] = []
+    private var recordingStartDate: Date?
     
     override init() {
         super.init()
@@ -60,6 +61,7 @@ final class LocationManager: NSObject, ObservableObject {
         recordedRoute.removeAll()
         photoPins.removeAll()
         isRecording = true
+        recordingStartDate = Date()
         locationManager.startUpdatingLocation()
     }
     
@@ -68,8 +70,20 @@ final class LocationManager: NSObject, ObservableObject {
         locationManager.stopUpdatingLocation()
                 
         guard let userID = firebaseFunctions.currentUser?.id else { return }
+        let totalTime: TimeInterval
         
-        firebaseFunctions.saveRoute(for: userID, name: "Route \(Date().formatted())", coordinates: recordedRoute, photoPins: photoPins)
+        if let start = recordingStartDate {
+            totalTime = Date().timeIntervalSince(start) 
+        } else {
+            totalTime = 0
+        }
+        firebaseFunctions.saveRoute(
+            for: userID,
+            name: "Route \(Date().formatted())",
+            totalTime: totalTime,
+            coordinates: recordedRoute,
+            photoPins: photoPins
+        )
     }
     
     @discardableResult
