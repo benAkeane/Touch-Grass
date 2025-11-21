@@ -34,141 +34,146 @@ struct PhotoPinView: View {
             ZStack {
                 mintGreen.opacity(0.35)
                     .ignoresSafeArea()
-                VStack(spacing: 20) {
-                    if isReadOnly {
-                        Text(pin.title.isEmpty ? "Untitled" : pin.title)
-                            .font(.headline)
-                            .multilineTextAlignment(.center)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(mintGreen.opacity(0.3))
-                            .foregroundColor(softGreen)
-                            .cornerRadius(10)
-                            .padding(.horizontal)
-                    } else {
-                        TextField("Enter Image Title", text: $pin.title)
-                            .font(.headline)
-                            .multilineTextAlignment(.center)
-                            .padding()
-                            .background(mintGreen.opacity(0.3))
-                            .foregroundColor(softGreen)
-                            .cornerRadius(10)
-                            .padding(.horizontal)
-                    }
-                    
-                    ZStack {
-                        if let displayImage = displayImage {
-                            displayImage
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 300, height: 300)
-                                .clipShape(RoundedRectangle(cornerRadius: 20))
-                                .overlay(RoundedRectangle(cornerRadius: 20).stroke(softGreen, lineWidth: 3))
-                            
-                        } else if let data = pin.imageData, let uiImage = UIImage(data: data) {
-                            Image(uiImage: uiImage)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 300, height: 300)
-                                .clipShape(RoundedRectangle(cornerRadius: 20))
-                                .overlay(RoundedRectangle(cornerRadius: 20).stroke(softGreen, lineWidth: 3))
-                            
-                        } else if let urlString = pin.imageURL, let url = URL(string: urlString) {
-                            AsyncImage(url: url) { phase in
-                                switch phase {
-                                case .empty:
-                                    ProgressView()
-                                        .frame(width: 300, height: 300)
-                                case .success(let image):
-                                    image
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 300, height: 300)
-                                        .clipShape(RoundedRectangle(cornerRadius: 20))
-                                        .overlay(RoundedRectangle(cornerRadius: 20).stroke(softGreen, lineWidth: 3))
-                                case .failure:
-                                    VStack {
-                                        Image(systemName: "exclamationmark.triangle")
-                                        Text("Failed to load")
-                                    }
-                                    .frame(width: 300, height: 300)
-                                @unknown default:
-                                    EmptyView()
-                                }
-                            }
-                            
+                
+                ScrollView {
+                    VStack(spacing: 20) {
+                        if isReadOnly {
+                            Text(pin.title.isEmpty ? "Untitled" : pin.title)
+                                .font(.headline)
+                                .multilineTextAlignment(.center)
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(mintGreen.opacity(0.3))
+                                .foregroundColor(softGreen)
+                                .cornerRadius(10)
+                                .padding(.horizontal)
                         } else {
-                            // Placeholder
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(mintGreen.opacity(0.3))
+                            TextField("Enter Image Title", text: $pin.title)
+                                .font(.headline)
+                                .multilineTextAlignment(.center)
+                                .padding()
+                                .background(mintGreen.opacity(0.3))
+                                .foregroundColor(softGreen)
+                                .cornerRadius(10)
+                                .padding(.horizontal)
                         }
-                    }
-                    if isReadOnly {
-                        Text(pin.description.isEmpty ? "No Description" : pin.description)
-                            .font(.body)
-                            .multilineTextAlignment(.center)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(mintGreen.opacity(0.3))
-                            .foregroundColor(softGreen)
-                            .cornerRadius(10)
-                            .padding(.horizontal)
-                    } else {
-                        TextField("Enter Description", text: $pin.description, axis: .vertical)
-                            .lineLimit(3...6)
-                            .font(.body)
-                            .multilineTextAlignment(.center)
-                            .padding()
-                            .background(mintGreen.opacity(0.3))
-                            .foregroundColor(softGreen)
-                            .cornerRadius(10)
-                            .padding(.horizontal)
-                    }
-                    // Buttons (only shows if editing is allowed)
-                    if !isReadOnly {
-                        HStack(spacing: 12) {
-                            // Camera Button
-                            Button(action: {
-                                checkCameraPermission()
-                            }) {
-                                VStack {
-                                    Image(systemName: "camera.fill")
-                                    Text("Camera")
+                        
+                        ZStack {
+                            if let displayImage = displayImage {
+                                displayImage
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 300, height: 300)
+                                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                                    .overlay(RoundedRectangle(cornerRadius: 20).stroke(softGreen, lineWidth: 3))
+                                
+                            } else if let data = pin.imageData, let uiImage = UIImage(data: data) {
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 300, height: 300)
+                                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                                    .overlay(RoundedRectangle(cornerRadius: 20).stroke(softGreen, lineWidth: 3))
+                                
+                            } else if let urlString = pin.imageURL, let url = URL(string: urlString) {
+                                AsyncImage(url: url) { phase in
+                                    switch phase {
+                                    case .empty:
+                                        ProgressView()
+                                            .frame(width: 300, height: 300)
+                                    case .success(let image):
+                                        image
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 300, height: 300)
+                                            .clipShape(RoundedRectangle(cornerRadius: 20))
+                                            .overlay(RoundedRectangle(cornerRadius: 20).stroke(softGreen, lineWidth: 3))
+                                    case .failure:
+                                        VStack {
+                                            Image(systemName: "exclamationmark.triangle")
+                                            Text("Failed to load")
+                                        }
+                                        .frame(width: 300, height: 300)
+                                    @unknown default:
+                                        EmptyView()
+                                    }
                                 }
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(UIImagePickerController.isSourceTypeAvailable(.camera) ? softGreen : Color.gray)
-                                .cornerRadius(10)
-                            }
-                            .disabled(!UIImagePickerController.isSourceTypeAvailable(.camera))
-                            
-                            // Library Button
-                            PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
-                                VStack {
-                                    Image(systemName: "photo.on.rectangle")
-                                    Text("Library")
-                                }
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(softGreen)
-                                .cornerRadius(10)
+                                
+                            } else {
+                                // Placeholder
+                                RoundedRectangle(cornerRadius: 20)
+                                    .fill(mintGreen.opacity(0.3))
+                                    .frame(width: 300, height: 300)
                             }
                         }
-                        .padding(.horizontal)
+                        if isReadOnly {
+                            Text(pin.description.isEmpty ? "No Description" : pin.description)
+                                .font(.body)
+                                .multilineTextAlignment(.center)
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(mintGreen.opacity(0.3))
+                                .foregroundColor(softGreen)
+                                .cornerRadius(10)
+                                .padding(.horizontal)
+                        } else {
+                            TextField("Enter Description", text: $pin.description, axis: .vertical)
+                                .lineLimit(3...6)
+                                .font(.body)
+                                .multilineTextAlignment(.center)
+                                .padding()
+                                .background(mintGreen.opacity(0.3))
+                                .foregroundColor(softGreen)
+                                .cornerRadius(10)
+                                .padding(.horizontal)
+                        }
+                        
+                        // Buttons
+                        if !isReadOnly {
+                            HStack(spacing: 12) {
+                                Button(action: {
+                                    checkCameraPermission()
+                                }) {
+                                    VStack {
+                                        Image(systemName: "camera.fill")
+                                        Text("Camera")
+                                    }
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .padding()
+                                    .frame(maxWidth: .infinity)
+                                    .background(UIImagePickerController.isSourceTypeAvailable(.camera) ? softGreen : Color.gray)
+                                    .cornerRadius(10)
+                                }
+                                .disabled(!UIImagePickerController.isSourceTypeAvailable(.camera))
+                                
+                                PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
+                                    VStack {
+                                        Image(systemName: "photo.on.rectangle")
+                                        Text("Library")
+                                    }
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .padding()
+                                    .frame(maxWidth: .infinity)
+                                    .background(softGreen)
+                                    .cornerRadius(10)
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                        
+                        if let errorMessage {
+                            Text(errorMessage)
+                                .foregroundStyle(.red)
+                                .font(.caption)
+                        }
+                        
                     }
-                    
-                    if let errorMessage {
-                        Text(errorMessage)
-                            .foregroundStyle(.red)
-                            .font(.caption)
-                    }
-                    
-                    Spacer()
+                    .padding(.vertical)
                 }
+                .scrollDismissesKeyboard(.interactively)
+                
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button("Done") {
