@@ -122,14 +122,20 @@ struct ContentView: View {
                     guard let pending = pendingRoute,
                           let userID = firebaseFunctions.currentUser?.id else { return }
                     
-                    firebaseFunctions.saveRoute(
-                        for: userID,
-                        name: newRouteName.isEmpty ? "Route" : newRouteName,
-                        totalTime: pending.totalTime,
-                        coordinates: pending.coordinates,
-                        photoPins: pending.photoPins
-                    )
-                    
+                    Task {
+                        await firebaseFunctions.saveRoute(
+                            for: userID,
+                            name: newRouteName.isEmpty ? "Route" : newRouteName,
+                            totalTime: pending.totalTime,
+                            coordinates: pending.coordinates,
+                            photoPins: pending.photoPins
+                        )
+                        
+                        // Dismiss the sheet on the main thread
+                        DispatchQueue.main.async {
+                            showingRouteNamePrompt = false
+                        }
+                    }
                     showingRouteNamePrompt = false
                 }
                 .buttonStyle(.borderedProminent)

@@ -13,8 +13,8 @@ struct PhotoPin: Identifiable {
     let id = UUID()
     let coordinate: CLLocationCoordinate2D
     let timestamp = Date()
-
     var imageData: Data? = nil
+    var imageURL: String? = nil
     var title: String = ""
     var description: String = ""
         

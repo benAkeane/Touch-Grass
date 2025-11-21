@@ -64,28 +64,43 @@ struct PhotoPinView: View {
                                 .frame(width: 300, height: 300)
                                 .clipShape(RoundedRectangle(cornerRadius: 20))
                                 .overlay(RoundedRectangle(cornerRadius: 20).stroke(softGreen, lineWidth: 3))
+                            
                         } else if let data = pin.imageData, let uiImage = UIImage(data: data) {
-                            // Load from existing data
                             Image(uiImage: uiImage)
                                 .resizable()
                                 .scaledToFill()
                                 .frame(width: 300, height: 300)
                                 .clipShape(RoundedRectangle(cornerRadius: 20))
                                 .overlay(RoundedRectangle(cornerRadius: 20).stroke(softGreen, lineWidth: 3))
+                            
+                        } else if let urlString = pin.imageURL, let url = URL(string: urlString) {
+                            AsyncImage(url: url) { phase in
+                                switch phase {
+                                case .empty:
+                                    ProgressView()
+                                        .frame(width: 300, height: 300)
+                                case .success(let image):
+                                    image
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 300, height: 300)
+                                        .clipShape(RoundedRectangle(cornerRadius: 20))
+                                        .overlay(RoundedRectangle(cornerRadius: 20).stroke(softGreen, lineWidth: 3))
+                                case .failure:
+                                    VStack {
+                                        Image(systemName: "exclamationmark.triangle")
+                                        Text("Failed to load")
+                                    }
+                                    .frame(width: 300, height: 300)
+                                @unknown default:
+                                    EmptyView()
+                                }
+                            }
+                            
                         } else {
                             // Placeholder
                             RoundedRectangle(cornerRadius: 20)
                                 .fill(mintGreen.opacity(0.3))
-                                .frame(width: 300, height: 300)
-                                .overlay {
-                                    VStack {
-                                        Image(systemName: "camera")
-                                            .font(.system(size: 50))
-                                            .foregroundColor(softGreen)
-                                        Text("No Photo")
-                                            .foregroundColor(softGreen)
-                                    }
-                                }
                         }
                     }
                     if isReadOnly {

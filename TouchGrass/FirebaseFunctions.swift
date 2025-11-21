@@ -147,11 +147,13 @@ class FirebaseFunctions: ObservableObject {
 
     
     // Adds a route to the firestore database by storing the coordinates as geopoints
-    func saveRoute(for userID: String, name: String, totalTime: TimeInterval, coordinates: [CLLocationCoordinate2D], photoPins: [PhotoPin]) {
+    func saveRoute(for userID: String, name: String, totalTime: TimeInterval, coordinates: [CLLocationCoordinate2D], photoPins: [PhotoPin]) async {
         let geoPoints = coordinates.map { GeoPoint(latitude: $0.latitude, longitude: $0.longitude) }
         let distanceMeters = totalDistance(in: coordinates)
         
-        let photoPinData: [[String: Any]] = photoPins.map { pin in
+        var photoPinData: [[String: Any]] = []
+        
+        for pin in photoPins {
             var dict: [String: Any] = [
                 "latitude": pin.coordinate.latitude,
                 "longitude": pin.coordinate.longitude,
@@ -160,9 +162,18 @@ class FirebaseFunctions: ObservableObject {
             ]
             
             if let data = pin.imageData {
-                dict["imageBase64"] = data.base64EncodedString()
+                let imageId = UUID().uuidString
+                let path = "route_images/\(userID)/\(imageId).jpg"
+                
+                do {
+                    let downloadURL = try await uploadImageToStorage(data: data, path: path)
+                    dict["imageURL"] = downloadURL
+                } catch {
+                    print("Failed to upload image for pin: \(error.localizedDescription)")
+                }
             }
-            return dict
+            
+            photoPinData.append(dict)
         }
         
         let routeData: [String: Any] = [
@@ -174,16 +185,15 @@ class FirebaseFunctions: ObservableObject {
             "distance": distanceMeters
         ]
         
-        db.collection("users")
-            .document(userID)
-            .collection("routes")
-            .addDocument(data: routeData) { error in
-                if let error = error {
-                    print("Error saving route: \(error.localizedDescription)")
-                } else {
-                    print("Saved route successfully")
-                }
-            }
+        do {
+            try await db.collection("users")
+                .document(userID)
+                .collection("routes")
+                .addDocument(data: routeData)
+            print("Saved route successfully with storage images")
+        } catch {
+            print("Error saving route to firestore: \(error.localizedDescription)")
+        }
     }
     
     
@@ -292,6 +302,18 @@ class FirebaseFunctions: ObservableObject {
         }
 
         return bestData
+    }
+    
+    func uploadImageToStorage(data: Data, path: String) async throws -> String {
+        let ref = storage.reference().child(path)
+        let metadata = StorageMetadata()
+        metadata.contentType = "image/jpeg"
+        
+        _ = try await ref.putDataAsync(data, metadata: metadata)
+        
+        let url = try await ref.downloadURL()
+        
+        return url.absoluteString
     }
 }
 

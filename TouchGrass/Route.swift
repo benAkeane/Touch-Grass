@@ -34,10 +34,8 @@ struct Route: Identifiable, Codable {
             pin.title = savedPin.title ?? ""
             pin.description = savedPin.description ?? ""
             
-            // Reconstruct the image data from Base64
-            if let base64 = savedPin.imageBase64 {
-                pin.imageData = Data(base64Encoded: base64)
-            }
+            pin.imageURL = savedPin.imageURL
+            
             return pin
         }
     }
@@ -57,14 +55,14 @@ struct SavedPhotoPin: Codable, Identifiable {
     var id = UUID()
     let latitude: Double
     let longitude: Double
-    let imageBase64: String?
+    let imageURL: String?
     let title: String?
     let description: String?
 
     enum CodingKeys: String, CodingKey {
         case latitude
         case longitude
-        case imageBase64
+        case imageURL
         case title
         case description
     }
