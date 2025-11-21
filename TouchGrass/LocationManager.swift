@@ -27,6 +27,18 @@ struct FinishedRoute {
     let totalTime: TimeInterval
     let coordinates: [CLLocationCoordinate2D]
     let photoPins: [PhotoPin]
+    let distanceMeters: CLLocationDistance
+}
+
+private func totalDistance(in coordinates: [CLLocationCoordinate2D]) -> CLLocationDistance {
+    guard coordinates.count > 1 else { return 0 }
+    var total: CLLocationDistance = 0
+    for i in 1..<coordinates.count {
+        let a = CLLocation(latitude: coordinates[i-1].latitude, longitude: coordinates[i-1].longitude)
+        let b = CLLocation(latitude: coordinates[i].latitude, longitude: coordinates[i].longitude)
+        total += a.distance(from: b)
+    }
+    return total
 }
 
 final class LocationManager: NSObject, ObservableObject {
@@ -41,6 +53,10 @@ final class LocationManager: NSObject, ObservableObject {
     @Published var recordedRoute: [CLLocationCoordinate2D] = []
     @Published var photoPins: [PhotoPin] = []
     private var recordingStartDate: Date?
+    
+    var currentDistanceMeters: CLLocationDistance {
+        totalDistance(in: recordedRoute)
+    }
     
     override init() {
         super.init()
@@ -79,11 +95,13 @@ final class LocationManager: NSObject, ObservableObject {
         guard let start = recordingStartDate else { return nil }
         
         let totalTime = Date().timeIntervalSince(start)
+        let distanceMeters = totalDistance(in: recordedRoute)
         
         return FinishedRoute(
             totalTime: totalTime,
             coordinates: recordedRoute,
-            photoPins: photoPins
+            photoPins: photoPins,
+            distanceMeters: distanceMeters
         )
     }
     
