@@ -31,6 +31,7 @@ struct Route: Identifiable, Codable {
             var pin = PhotoPin(coordinate: CLLocationCoordinate2D(latitude: savedPin.latitude, longitude: savedPin.longitude))
             
             pin.title = savedPin.title ?? ""
+            pin.description = savedPin.description ?? ""
             
             // Reconstruct the image data from Base64
             if let base64 = savedPin.imageBase64 {
@@ -56,11 +57,13 @@ struct SavedPhotoPin: Codable, Identifiable {
     let longitude: Double
     let imageBase64: String?
     let title: String?
+    let description: String?
 
     enum CodingKeys: String, CodingKey {
         case latitude
         case longitude
         case imageBase64
         case title
+        case description
     }
 }

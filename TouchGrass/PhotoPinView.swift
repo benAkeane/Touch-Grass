@@ -29,14 +29,24 @@ struct PhotoPinView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
-                TextField(isReadOnly ? "Untitled" : "Enter Image Title", text: $pin.title)
-                    .font(.headline)
-                    .multilineTextAlignment(.center)
-                    .padding()
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(10)
-                    .padding(.horizontal)
-                    .disabled(isReadOnly)
+                if isReadOnly {
+                    Text(pin.title.isEmpty ? "Untitled" : pin.title)
+                        .font(.headline)
+                        .multilineTextAlignment(.center)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(10)
+                        .padding(.horizontal)
+                } else {
+                    TextField("Enter Image Title", text: $pin.title)
+                        .font(.headline)
+                        .multilineTextAlignment(.center)
+                        .padding()
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(10)
+                        .padding(.horizontal)
+                }
             
                 ZStack {
                     if let displayImage = displayImage {
@@ -68,7 +78,25 @@ struct PhotoPinView: View {
                             }
                     }
                 }
-                
+                if isReadOnly {
+                    Text(pin.description.isEmpty ? "No Description" : pin.description)
+                        .font(.body)
+                        .multilineTextAlignment(.center)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(10)
+                        .padding(.horizontal)
+                } else {
+                    TextField("Enter Description", text: $pin.description, axis: .vertical)
+                        .lineLimit(3...6)
+                        .font(.body)
+                        .multilineTextAlignment(.center)
+                        .padding()
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(10)
+                        .padding(.horizontal)
+                }
                 // Buttons (only shows if editing is allowed)
                 if !isReadOnly {
                     HStack(spacing: 12) {

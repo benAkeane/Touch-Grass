@@ -16,6 +16,7 @@ struct PhotoPin: Identifiable {
 
     var imageData: Data? = nil
     var title: String = ""
+    var description: String = ""
         
     static func == (lhs: PhotoPin, rhs: PhotoPin) -> Bool {
         return lhs.id == rhs.id

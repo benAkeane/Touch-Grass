@@ -140,7 +140,8 @@ class FirebaseFunctions: ObservableObject {
             var dict: [String: Any] = [
                 "latitude": pin.coordinate.latitude,
                 "longitude": pin.coordinate.longitude,
-                "title": pin.title
+                "title": pin.title,
+                "description": pin.description
             ]
             
             if let data = pin.imageData {
