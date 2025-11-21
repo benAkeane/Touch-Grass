@@ -1,6 +1,7 @@
 import SwiftUI
 import MapKit
 import FirebaseFirestore
+import CoreLocation
 
 struct RouteDetailView: View {
     let route: Route
@@ -33,9 +34,12 @@ struct RouteDetailView: View {
 
 
                 Group {
-                    if let duration = routeDuration ?? routeTotalTime.map({ formatTime(seconds: Int($0)) }) {
+                    let durationText = routeDuration ?? routeTotalTime.map({ formatTime(seconds: Int($0)) })
+                    let distanceText = computedDistanceString
+                    if durationText != nil || distanceText != nil {
                         HStack(spacing: 16) {
-                            Label(duration, systemImage: "clock")
+                            if let durationText { Label(durationText, systemImage: "clock") }
+                            if let distanceText { Label(distanceText, systemImage: "ruler") }
                         }
                     } else {
                         Text("No stats available")
@@ -121,6 +125,17 @@ struct RouteDetailView: View {
 
 
 private extension RouteDetailView {
+    func totalDistance(in coordinates: [CLLocationCoordinate2D]) -> CLLocationDistance {
+        guard coordinates.count > 1 else { return 0 }
+        var total: CLLocationDistance = 0
+        for i in 1..<coordinates.count {
+            let a = CLLocation(latitude: coordinates[i-1].latitude, longitude: coordinates[i-1].longitude)
+            let b = CLLocation(latitude: coordinates[i].latitude, longitude: coordinates[i].longitude)
+            total += a.distance(from: b)
+        }
+        return total
+    }
+    
     var routeName: String {
         // Very defensive way to get routeName since I kept getting errors/crashes doing it normally
         // Hence I am using swift mirror to ensure safety.
@@ -171,8 +186,23 @@ private extension RouteDetailView {
         }
         return nil
     }
-
-
+    
+    var computedDistanceString: String? {
+        // Prefer stored distance on the model if present
+        if let stored = Mirror(reflecting: route).children.first(where: { $0.label == "distance" })?.value as? Double, stored > 0 {
+            return formatDistance(meters: stored)
+        }
+        // Otherwise compute from the polyline (if already set)
+        if !mapPolyline.isEmpty {
+            return formatDistance(meters: totalDistance(in: mapPolyline))
+        }
+        // Or compute directly from coordinates if accessible
+        if let geoPoints = Mirror(reflecting: route).children.first(where: { $0.label == "coordinates" })?.value as? [GeoPoint] {
+            let coords = geoPoints.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
+            return formatDistance(meters: totalDistance(in: coords))
+        }
+        return nil
+    }
 
     func configureFromRoute() {
         // Attempt to read an array of coordinates on common property names.
@@ -248,8 +278,17 @@ private extension RouteDetailView {
         if m > 0 { return String(format: "%dm %ds", m, s) }
         return String(format: "%ds", s)
     }
+    
+    func formatDistance(meters: Double) -> String {
+        if meters >= 1000 {
+            return String(format: "%.2f km", meters / 1000.0)
+        } else {
+            return String(format: "%.0f m", meters)
+        }
+    }
 }
 
 #Preview {
     Text("RouteDetailView can only be seen when you fully run the app/simulator")
 }
+

@@ -12,6 +12,19 @@ import FirebaseStorage
 import CoreLocation
 
 
+// Computes total geodesic distance in meters for an ordered list of coordinates
+private func totalDistance(in coordinates: [CLLocationCoordinate2D]) -> CLLocationDistance {
+    guard coordinates.count > 1 else { return 0 }
+    var total: CLLocationDistance = 0
+    for i in 1..<coordinates.count {
+        let a = CLLocation(latitude: coordinates[i-1].latitude, longitude: coordinates[i-1].longitude)
+        let b = CLLocation(latitude: coordinates[i].latitude, longitude: coordinates[i].longitude)
+        total += a.distance(from: b)
+    }
+    return total
+}
+
+
 class FirebaseFunctions: ObservableObject {
     private let db = Firestore.firestore()
     private let storage = Storage.storage()
@@ -136,6 +149,8 @@ class FirebaseFunctions: ObservableObject {
     // Adds a route to the firestore database by storing the coordinates as geopoints
     func saveRoute(for userID: String, name: String, totalTime: TimeInterval, coordinates: [CLLocationCoordinate2D], photoPins: [PhotoPin]) {
         let geoPoints = coordinates.map { GeoPoint(latitude: $0.latitude, longitude: $0.longitude) }
+        let distanceMeters = totalDistance(in: coordinates)
+        
         let photoPinData: [[String: Any]] = photoPins.map { pin in
             var dict: [String: Any] = [
                 "latitude": pin.coordinate.latitude,
@@ -155,7 +170,8 @@ class FirebaseFunctions: ObservableObject {
             "coordinates": geoPoints,
             "photoPins": photoPinData,
             "date": Timestamp(date: Date()),
-            "totalTime": totalTime
+            "totalTime": totalTime,
+            "distance": distanceMeters
         ]
         
         db.collection("users")
@@ -271,3 +287,4 @@ class FirebaseFunctions: ObservableObject {
         return imageData
     }
 }
+

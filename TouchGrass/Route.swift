@@ -19,6 +19,7 @@ struct Route: Identifiable, Codable {
     
     var date: Date
     var totalTime: Double?
+    var distance: Double?
     
     var coordinatePoints: [CLLocationCoordinate2D] {
         coordinates.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
@@ -48,6 +49,7 @@ struct Route: Identifiable, Codable {
         case savedPhotoPins = "photoPins"
         case date
         case totalTime
+        case distance
     }
 }
 
