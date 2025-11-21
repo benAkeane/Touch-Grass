@@ -22,162 +22,176 @@ struct PhotoPinView: View {
     @State private var showCamera = false
     @State private var showPermissionAlert = false
     
+    private let mintGreen = Color(red: 0.78, green: 0.93, blue: 0.80)
+    private let softGreen = Color(red: 0.35, green: 0.60, blue: 0.40)
+    
     // if true for RouteDetailView
     // if false for ContentView recording
     var isReadOnly: Bool = false
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
-                if isReadOnly {
-                    Text(pin.title.isEmpty ? "Untitled" : pin.title)
-                        .font(.headline)
-                        .multilineTextAlignment(.center)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(10)
-                        .padding(.horizontal)
-                } else {
-                    TextField("Enter Image Title", text: $pin.title)
-                        .font(.headline)
-                        .multilineTextAlignment(.center)
-                        .padding()
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(10)
-                        .padding(.horizontal)
-                }
-            
-                ZStack {
-                    if let displayImage = displayImage {
-                        displayImage
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 300, height: 300)
-                            .clipShape(RoundedRectangle(cornerRadius: 20))
-                    } else if let data = pin.imageData, let uiImage = UIImage(data: data) {
-                        // Load from existing data
-                        Image(uiImage: uiImage)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 300, height: 300)
-                            .clipShape(RoundedRectangle(cornerRadius: 20))
+            ZStack {
+                mintGreen.opacity(0.35)
+                    .ignoresSafeArea()
+                VStack(spacing: 20) {
+                    if isReadOnly {
+                        Text(pin.title.isEmpty ? "Untitled" : pin.title)
+                            .font(.headline)
+                            .multilineTextAlignment(.center)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(mintGreen.opacity(0.3))
+                            .foregroundColor(softGreen)
+                            .cornerRadius(10)
+                            .padding(.horizontal)
                     } else {
-                        // Placeholder
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color.gray.opacity(0.2))
-                            .frame(width: 300, height: 300)
-                            .overlay {
-                                VStack {
-                                    Image(systemName: "camera")
-                                        .font(.system(size: 50))
-                                        .foregroundColor(.gray)
-                                    Text("No Photo")
-                                        .foregroundColor(.gray)
+                        TextField("Enter Image Title", text: $pin.title)
+                            .font(.headline)
+                            .multilineTextAlignment(.center)
+                            .padding()
+                            .background(mintGreen.opacity(0.3))
+                            .foregroundColor(softGreen)
+                            .cornerRadius(10)
+                            .padding(.horizontal)
+                    }
+                    
+                    ZStack {
+                        if let displayImage = displayImage {
+                            displayImage
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 300, height: 300)
+                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                                .overlay(RoundedRectangle(cornerRadius: 20).stroke(softGreen, lineWidth: 3))
+                        } else if let data = pin.imageData, let uiImage = UIImage(data: data) {
+                            // Load from existing data
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 300, height: 300)
+                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                                .overlay(RoundedRectangle(cornerRadius: 20).stroke(softGreen, lineWidth: 3))
+                        } else {
+                            // Placeholder
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(mintGreen.opacity(0.3))
+                                .frame(width: 300, height: 300)
+                                .overlay {
+                                    VStack {
+                                        Image(systemName: "camera")
+                                            .font(.system(size: 50))
+                                            .foregroundColor(softGreen)
+                                        Text("No Photo")
+                                            .foregroundColor(softGreen)
+                                    }
                                 }
-                            }
+                        }
                     }
-                }
-                if isReadOnly {
-                    Text(pin.description.isEmpty ? "No Description" : pin.description)
-                        .font(.body)
-                        .multilineTextAlignment(.center)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(10)
-                        .padding(.horizontal)
-                } else {
-                    TextField("Enter Description", text: $pin.description, axis: .vertical)
-                        .lineLimit(3...6)
-                        .font(.body)
-                        .multilineTextAlignment(.center)
-                        .padding()
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(10)
-                        .padding(.horizontal)
-                }
-                // Buttons (only shows if editing is allowed)
-                if !isReadOnly {
-                    HStack(spacing: 12) {
-                        // Camera Button
-                        Button(action: {
-                            checkCameraPermission()
-                        }) {
-                            VStack {
-                                Image(systemName: "camera.fill")
-                                Text("Camera")
-                            }
-                            .font(.headline)
-                            .foregroundColor(.white)
+                    if isReadOnly {
+                        Text(pin.description.isEmpty ? "No Description" : pin.description)
+                            .font(.body)
+                            .multilineTextAlignment(.center)
                             .padding()
                             .frame(maxWidth: .infinity)
-                            .background(UIImagePickerController.isSourceTypeAvailable(.camera) ? Color.blue : Color.gray)
+                            .background(mintGreen.opacity(0.3))
+                            .foregroundColor(softGreen)
                             .cornerRadius(10)
-                        }
-                        .disabled(!UIImagePickerController.isSourceTypeAvailable(.camera))
-                        
-                        // Library Button
-                        PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
-                            VStack {
-                                Image(systemName: "photo.on.rectangle")
-                                Text("Library")
-                            }
-                            .font(.headline)
-                            .foregroundColor(.white)
+                            .padding(.horizontal)
+                    } else {
+                        TextField("Enter Description", text: $pin.description, axis: .vertical)
+                            .lineLimit(3...6)
+                            .font(.body)
+                            .multilineTextAlignment(.center)
                             .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.blue)
+                            .background(mintGreen.opacity(0.3))
+                            .foregroundColor(softGreen)
                             .cornerRadius(10)
+                            .padding(.horizontal)
+                    }
+                    // Buttons (only shows if editing is allowed)
+                    if !isReadOnly {
+                        HStack(spacing: 12) {
+                            // Camera Button
+                            Button(action: {
+                                checkCameraPermission()
+                            }) {
+                                VStack {
+                                    Image(systemName: "camera.fill")
+                                    Text("Camera")
+                                }
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(UIImagePickerController.isSourceTypeAvailable(.camera) ? softGreen : Color.gray)
+                                .cornerRadius(10)
+                            }
+                            .disabled(!UIImagePickerController.isSourceTypeAvailable(.camera))
+                            
+                            // Library Button
+                            PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
+                                VStack {
+                                    Image(systemName: "photo.on.rectangle")
+                                    Text("Library")
+                                }
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(softGreen)
+                                .cornerRadius(10)
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                    
+                    if let errorMessage {
+                        Text(errorMessage)
+                            .foregroundStyle(.red)
+                            .font(.caption)
+                    }
+                    
+                    Spacer()
+                }
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Done") {
+                            dismiss()
+                        }
+                        .foregroundColor(softGreen)
+                    }
+                }
+                .onChange(of: selectedItem) { oldValue, newValue in
+                    guard let newValue = newValue else { return }
+                    Task {
+                        do {
+                            errorMessage = nil
+                            guard let data = try await newValue.loadTransferable(type: Data.self),
+                                  let uiImage = UIImage(data: data) else {
+                                throw NSError(domain: "PhotoPinView", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to read image"])
+                            }
+                            processImage(uiImage)
+                        } catch {
+                            errorMessage = error.localizedDescription
                         }
                     }
-                    .padding(.horizontal)
                 }
-                
-                if let errorMessage {
-                    Text(errorMessage)
-                        .foregroundStyle(.red)
-                        .font(.caption)
-                }
-                
-                Spacer()
-            }
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
-                        dismiss()
+                .sheet(isPresented: $showCamera) {
+                    CameraInput { image in
+                        processImage(image)
                     }
                 }
-            }
-            .onChange(of: selectedItem) { oldValue, newValue in
-                guard let newValue = newValue else { return }
-                Task {
-                    do {
-                        errorMessage = nil
-                        guard let data = try await newValue.loadTransferable(type: Data.self),
-                              let uiImage = UIImage(data: data) else {
-                            throw NSError(domain: "PhotoPinView", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to read image"])
+                .alert("Camera Access Required", isPresented: $showPermissionAlert) {
+                    Button("Settings") {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
                         }
-                        processImage(uiImage)
-                    } catch {
-                        errorMessage = error.localizedDescription
                     }
+                    Button("Cancel", role: .cancel) { }
+                } message: {
+                    Text("Please enable camera access in your device settings to take photos.")
                 }
-            }
-            .sheet(isPresented: $showCamera) {
-                CameraInput { image in
-                    processImage(image)
-                }
-            }
-            .alert("Camera Access Required", isPresented: $showPermissionAlert) {
-                Button("Settings") {
-                    if let url = URL(string: UIApplication.openSettingsURLString) {
-                        UIApplication.shared.open(url)
-                    }
-                }
-                Button("Cancel", role: .cancel) { }
-            } message: {
-                Text("Please enable camera access in your device settings to take photos.")
             }
         }
     }

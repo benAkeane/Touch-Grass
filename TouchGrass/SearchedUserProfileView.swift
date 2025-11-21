@@ -14,46 +14,56 @@ struct SearchedUserProfileView: View {
     @State private var profileImage: Image? = nil
     @State private var routes: [Route] = []
     
+    private let mintGreen = Color(red: 0.78, green: 0.93, blue: 0.80)
+    private let softGreen = Color(red: 0.35, green: 0.60, blue: 0.40)
+    
     let username: String
     
     var body: some View {
         ZStack {
-            Color(.systemGreen).opacity(0.15)
+            mintGreen.opacity(0.35)
                 .ignoresSafeArea()
             
-            ScrollView {
-                VStack(spacing: 25) {
-                    ZStack {
-                        Circle()
-                            .fill(.ultraThinMaterial)
-                            .frame(width: 300, height: 300)
-                            .shadow(radius: 12)
-                        Group {
-                            if let profileImage = profileImage {
-                                profileImage
-                                    .resizable()
-                                    .scaledToFill()
-                            } else {
-                                Image("Profile")
-                                    .resizable()
-                                    .scaledToFill()
-                            }
-                        }
-                        .frame(width: 260, height: 260)
-                        .clipShape(Circle())
-                        .overlay(Circle().stroke(Color.green, lineWidth: 4))
-                    }
+            VStack {
+                
+                Text("Profile")
+                    .font(.largeTitle)
+                    .bold()
                     .padding(.top)
-                    Text(username)
-                        .font(.system(size: 38, weight: .bold))
-                        .foregroundColor(.green)
-                        .shadow(radius: 3)
-                    Text("Past Routes")
-                        .font(.title2.bold())
-                        .foregroundColor(.green)
-                        .padding(.top, 10)
-                    
-
+                    .foregroundColor(softGreen)
+                
+                ZStack(alignment: .bottomTrailing) {
+                    Group {
+                        if let profileImage = profileImage {
+                            profileImage
+                                .resizable()
+                                .scaledToFill()
+                        } else {
+                            Image("Profile")
+                                .resizable()
+                                .scaledToFill()
+                        }
+                    }
+                    .frame(width: 250, height: 250)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(softGreen, lineWidth: 4))
+                }
+                .padding()
+                
+                Text(username)
+                    .font(.title)
+                    .bold()
+                    .foregroundColor(softGreen)
+                
+                // ----- Code for routes below -----
+                
+                Text("Past Routes")
+                    .font(.title2)
+                    .bold()
+                    .padding(.top)
+                    .foregroundColor(softGreen)
+                
+                ScrollView {
                     VStack(spacing: 15) {
                         if routes.isEmpty {
                             Text("No routes yet")
@@ -65,34 +75,30 @@ struct SearchedUserProfileView: View {
                                     RouteDetailView(route: route)
                                 } label: {
                                     HStack {
-                                        VStack(alignment: .leading, spacing: 4) {
+                                        VStack(alignment: .leading) {
                                             Text(route.name)
                                                 .font(.headline)
-                                                .foregroundColor(.primary)
-                                            
+                                                .foregroundColor(softGreen)
                                             Text(route.date.formatted(date: .abbreviated, time: .shortened))
                                                 .font(.subheadline)
                                                 .foregroundColor(.secondary)
                                         }
-                                        
                                         Spacer()
-                                        
                                         Image(systemName: "map")
                                             .font(.title2)
-                                            .foregroundColor(.green)
+                                            .foregroundColor(softGreen)
                                     }
                                     .padding()
-                                    .background(.ultraThinMaterial)
-                                    .cornerRadius(15)
-                                    .shadow(radius: 4)
+                                    .background(mintGreen.opacity(0.6))
+                                    .cornerRadius(10)
                                 }
                             }
                         }
                     }
                     .padding(.horizontal)
-                    Spacer()
-                        .frame(height: 40)
                 }
+                
+                Spacer()
             }
         }
         .onAppear {
@@ -101,23 +107,22 @@ struct SearchedUserProfileView: View {
             }
         }
     }
-    
     private func loadUser() async {
-        if let fetchedID = await firebaseFunctions.getUserIdFromUsername(username) {
-            self.userID = fetchedID
-            
-            firebaseFunctions.getProfileImageBase64(for: fetchedID) { base64 in
-                if let base64,
-                   let data = Data(base64Encoded: base64),
-                   let uiImage = UIImage(data: data) {
-                    self.profileImage = Image(uiImage: uiImage)
+            if let fetchedID = await firebaseFunctions.getUserIdFromUsername(username) {
+                self.userID = fetchedID
+                
+                firebaseFunctions.getProfileImageBase64(for: fetchedID) { base64 in
+                    if let base64,
+                       let data = Data(base64Encoded: base64),
+                       let uiImage = UIImage(data: data) {
+                        self.profileImage = Image(uiImage: uiImage)
+                    }
+                }
+                
+                firebaseFunctions.getRoutes(for: fetchedID) { fetchedRoutes in
+                    self.routes = fetchedRoutes
                 }
             }
-            
-            firebaseFunctions.getRoutes(for: fetchedID) { fetchedRoutes in
-                self.routes = fetchedRoutes
-            }
-        }
     }
 }
 

@@ -270,21 +270,42 @@ class FirebaseFunctions: ObservableObject {
     
     
     // compress the users selected profile image so it can be stored on firebase
-    func compressImage(_ image: UIImage) -> Data? {
-        // had to make it smaller than firebases maxsize since the encoded string gets larger when converted to base64
-        let maxSize: Int = 700_000
-        var compression: CGFloat = 1.0
-        guard var imageData = image.jpegData(compressionQuality: compression) else { return nil }
+    func compressImage(_ image: UIImage, maxByteSize: Int = 300_000) -> Data? {
+        // resize image
+        let resized = image.resizedTo(maxDimension: 1024)
         
-        while imageData.count > maxSize && compression > 0.05 {
-            compression -= 0.05
-            if let newData = image.jpegData(compressionQuality: compression) {
-                imageData = newData
+        // compression
+        var min: CGFloat = 0.0
+        var max: CGFloat = 1.0
+        var bestData: Data?
+
+        for _ in 0..<6 {
+            let mid = (min + max) / 2
+            guard let data = resized.jpegData(compressionQuality: mid) else { break }
+
+            if data.count > maxByteSize {
+                max = mid
             } else {
-                break
+                min = mid
+                bestData = data
             }
         }
-        return imageData
+
+        return bestData
     }
 }
 
+extension UIImage {
+    func resizedTo(maxDimension: CGFloat) -> UIImage {
+        let maxLength = max(size.width, size.height)
+        if maxLength <= maxDimension { return self }
+
+        let scale = maxDimension / maxLength
+        let newSize = CGSize(width: size.width * scale, height: size.height * scale)
+
+        let renderer = UIGraphicsImageRenderer(size: newSize)
+        return renderer.image { _ in
+            self.draw(in: CGRect(origin: .zero, size: newSize))
+        }
+    }
+}
