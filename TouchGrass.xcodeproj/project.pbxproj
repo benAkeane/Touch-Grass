@@ -415,6 +415,7 @@
 				DEVELOPMENT_TEAM = H238C7HVFP;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "TouchGrass needs camera access to let you pin photos to your route";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location so our app will work";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -444,6 +445,7 @@
 				DEVELOPMENT_TEAM = H238C7HVFP;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "TouchGrass needs camera access to let you pin photos to your route";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location so our app will work";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

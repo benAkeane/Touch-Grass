@@ -163,7 +163,7 @@ struct ProfileView: View {
                             guard let compressedData = firebaseFunctions.compressImage(uiImage),
                                   let compressedImage = UIImage(data: compressedData) else {
                                 throw NSError(domain: "ProfileView", code: -1,
-                                              userInfo: [NSLocalizedDescriptionKey: "failed to ompress image"])
+                                              userInfo: [NSLocalizedDescriptionKey: "failed to compress image"])
                             }
                             
                             // Optimistically show selected image
