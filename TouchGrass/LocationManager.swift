@@ -43,21 +43,27 @@ private func totalDistance(in coordinates: [CLLocationCoordinate2D]) -> CLLocati
 
 final class LocationManager: NSObject, ObservableObject {
     private let locationManager = CLLocationManager()
-    
+
     @Published var region = MKCoordinateRegion(
         center: .init(latitude: 37.334_900, longitude: -122.009_020),
         span: .init(latitudeDelta: 0.2, longitudeDelta: 0.2)
     )
-    
+
     @Published var isRecording = false
     @Published var recordedRoute: [CLLocationCoordinate2D] = []
     @Published var photoPins: [PhotoPin] = []
+
+    // Live time (in sec) since startRecording()
+    @Published var elapsedTime: TimeInterval = 0
+
+    // MARK: - Private state
     private var recordingStartDate: Date?
-    
+    private var timer: DispatchSourceTimer?
+
     var currentDistanceMeters: CLLocationDistance {
         totalDistance(in: recordedRoute)
     }
-    
+
     override init() {
         super.init()
         
@@ -65,7 +71,30 @@ final class LocationManager: NSObject, ObservableObject {
         self.locationManager.desiredAccuracy = kCLLocationAccuracyBest
         self.setup()
     }
-    
+
+    // Starts timer, stopping previous timer if there is one and reseting to start.
+    private func startTimer() {
+        stopTimer()
+        let timer = DispatchSource.makeTimerSource(queue: .main)
+        timer.schedule(deadline: .now(), repeating: .seconds(1), leeway: .milliseconds(200))
+        timer.setEventHandler { [weak self] in
+            guard let self = self, let start = self.recordingStartDate else { return }
+            self.elapsedTime = Date().timeIntervalSince(start)
+        }
+        self.timer = timer
+        timer.resume()
+    }
+
+    private func stopTimer() {
+        timer?.setEventHandler {}
+        timer?.cancel()
+        timer = nil
+    }
+
+    deinit {
+        stopTimer()
+    }
+
     func setup() {
         switch locationManager.authorizationStatus {
         //If we are authorized then we request location just once, to center the map
@@ -83,26 +112,44 @@ final class LocationManager: NSObject, ObservableObject {
     func startRecording() {
         recordedRoute.removeAll()
         photoPins.removeAll()
+        elapsedTime = 0
         isRecording = true
         recordingStartDate = Date()
+        startTimer()
         locationManager.startUpdatingLocation()
     }
     
     func stopRecording() -> FinishedRoute? {
         isRecording = false
         locationManager.stopUpdatingLocation()
-                
+        stopTimer()
+
         guard let start = recordingStartDate else { return nil }
-        
+
         let totalTime = Date().timeIntervalSince(start)
+        elapsedTime = totalTime
         let distanceMeters = totalDistance(in: recordedRoute)
-        
+
+        // Clear start date to mark end of a session
+        recordingStartDate = nil
+
         return FinishedRoute(
             totalTime: totalTime,
             coordinates: recordedRoute,
             photoPins: photoPins,
             distanceMeters: distanceMeters
         )
+    }
+    
+    // Reset recording function to help with UI
+    func resetRecording() {
+        isRecording = false
+        stopTimer()
+        locationManager.stopUpdatingLocation()
+        recordedRoute.removeAll()
+        photoPins.removeAll()
+        elapsedTime = 0
+        recordingStartDate = nil
     }
     
     @discardableResult
@@ -139,6 +186,9 @@ extension LocationManager: CLLocationManagerDelegate {
         
         if isRecording {
             recordedRoute.append(location.coordinate)
+            if let start = recordingStartDate {
+                elapsedTime = Date().timeIntervalSince(start)
+            }
         }
     }
 }
