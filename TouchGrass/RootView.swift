@@ -18,9 +18,19 @@ enum MainView {
 struct RootView: View {
     @EnvironmentObject var firebaseFunctions: FirebaseFunctions
     @State private var currentView: MainView = .home
+    @State private var showLandingPage = true
     
     var body: some View {
-        if firebaseFunctions.currentUser == nil {
+        if showLandingPage {
+            LandingPageView(
+                onLogin: {
+                    showLandingPage = false
+                },
+                onSignUp: {
+                    showLandingPage = false
+                }
+            )
+        } else if firebaseFunctions.currentUser == nil {
             LoginView() // Show login screen if user isn't currently logged in
         } else {
             switch currentView {
