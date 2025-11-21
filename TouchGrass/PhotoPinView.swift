@@ -42,6 +42,7 @@ struct PhotoPinView: View {
                             .padding()
                             .frame(maxWidth: .infinity)
                             .background(mintGreen.opacity(0.3))
+                            .foregroundColor(softGreen)
                             .cornerRadius(10)
                             .padding(.horizontal)
                     } else {
@@ -50,6 +51,7 @@ struct PhotoPinView: View {
                             .multilineTextAlignment(.center)
                             .padding()
                             .background(mintGreen.opacity(0.3))
+                            .foregroundColor(softGreen)
                             .cornerRadius(10)
                             .padding(.horizontal)
                     }
@@ -93,6 +95,7 @@ struct PhotoPinView: View {
                             .padding()
                             .frame(maxWidth: .infinity)
                             .background(mintGreen.opacity(0.3))
+                            .foregroundColor(softGreen)
                             .cornerRadius(10)
                             .padding(.horizontal)
                     } else {
@@ -102,6 +105,7 @@ struct PhotoPinView: View {
                             .multilineTextAlignment(.center)
                             .padding()
                             .background(mintGreen.opacity(0.3))
+                            .foregroundColor(softGreen)
                             .cornerRadius(10)
                             .padding(.horizontal)
                     }
