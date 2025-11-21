@@ -10,6 +10,7 @@ import SwiftUI
 struct LandingPageView: View {
     var onLogin: () -> Void
     var onSignUp: () -> Void
+    private let mintGreen = Color(red: 0.78, green: 0.93, blue: 0.80)
 
     var body: some View {
         VStack(spacing: 40) {
@@ -49,7 +50,7 @@ struct LandingPageView: View {
 
             Spacer()
         }
-        .background(Color("MintGreen").ignoresSafeArea())
+        .background(Color(mintGreen).ignoresSafeArea())
     }
 }
 
