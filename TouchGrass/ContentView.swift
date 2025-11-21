@@ -68,6 +68,23 @@ struct ContentView: View {
             }
             .edgesIgnoringSafeArea(.all)
 
+            // Live stats overlay (appears only when route is active)
+            if manager.isRecording {
+                VStack() {
+                    HStack(spacing: 16) {
+                        Label(formatTime(manager.elapsedTime), systemImage: "clock")
+                        Label(formatDistance(manager.currentDistanceMeters), systemImage: "ruler")
+                    }
+                    .font(.headline)
+                    .padding(.horizontal, 16)
+                    .background(.ultraThinMaterial, in: Capsule())
+                    .shadow(radius: 3)
+
+                    Spacer()
+                }
+                
+            }
+
             // Top buttons
             VStack {
                 HStack {
@@ -181,6 +198,25 @@ struct ContentView: View {
                 .background(mintGreen.opacity(0.8))
                 .clipShape(Circle())
                 .shadow(radius: 3)
+        }
+    }
+    
+    // Format helpers below for the time and distance
+    private func formatTime(_ seconds: TimeInterval) -> String {
+        let sInt = Int(seconds)
+        let h = sInt / 3600
+        let m = (sInt % 3600) / 60
+        let s = sInt % 60
+        if h > 0 { return String(format: "%dh %dm %ds", h, m, s) }
+        if m > 0 { return String(format: "%dm %ds", m, s) }
+        return String(format: "%ds", s)
+    }
+
+    private func formatDistance(_ meters: CLLocationDistance) -> String {
+        if meters >= 1000 {
+            return String(format: "%.2f km", meters / 1000.0)
+        } else {
+            return String(format: "%.0f m", meters)
         }
     }
 }

@@ -44,6 +44,7 @@ private func totalDistance(in coordinates: [CLLocationCoordinate2D]) -> CLLocati
 final class LocationManager: NSObject, ObservableObject {
     private let locationManager = CLLocationManager()
 
+    // MARK: - Published state
     @Published var region = MKCoordinateRegion(
         center: .init(latitude: 37.334_900, longitude: -122.009_020),
         span: .init(latitudeDelta: 0.2, longitudeDelta: 0.2)
@@ -53,7 +54,7 @@ final class LocationManager: NSObject, ObservableObject {
     @Published var recordedRoute: [CLLocationCoordinate2D] = []
     @Published var photoPins: [PhotoPin] = []
 
-    // Live time (in sec) since startRecording()
+    // Live elapsed time (in seconds) since startRecording(). Updated by an internal timer.
     @Published var elapsedTime: TimeInterval = 0
 
     // MARK: - Private state
@@ -72,7 +73,7 @@ final class LocationManager: NSObject, ObservableObject {
         self.setup()
     }
 
-    // Starts timer, stopping previous timer if there is one and reseting to start.
+    // MARK: - Timer lifecycle
     private func startTimer() {
         stopTimer()
         let timer = DispatchSource.makeTimerSource(queue: .main)
@@ -141,7 +142,6 @@ final class LocationManager: NSObject, ObservableObject {
         )
     }
     
-    // Reset recording function to help with UI
     func resetRecording() {
         isRecording = false
         stopTimer()
