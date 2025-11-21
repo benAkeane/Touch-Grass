@@ -7,6 +7,9 @@ struct RouteDetailView: View {
     
     @State private var selectedPin: PhotoPin?
     
+    private let mintGreen = Color(red: 0.78, green: 0.93, blue: 0.80)
+    private let softGreen = Color(red: 0.35, green: 0.60, blue: 0.40)
+    
     // Derived region from route coordinates if available
     @State private var region: MKCoordinateRegion = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 0, longitude: 0),
@@ -17,102 +20,110 @@ struct RouteDetailView: View {
     @State private var mapPolyline: [CLLocationCoordinate2D] = []
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                // Title
-                Text(routeName)
-                    .font(.largeTitle)
-                    .bold()
-
-                // Date of route
-                if let date = routeDate {
-                    Text(date.formatted(date: .abbreviated, time: .shortened))
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-
-
-                Group {
-                    if let duration = routeDuration ?? routeTotalTime.map({ formatTime(seconds: Int($0)) }) {
-                        HStack(spacing: 16) {
-                            Label(duration, systemImage: "clock")
-                        }
-                    } else {
-                        Text("No stats available")
+        ZStack {
+            mintGreen.opacity(0.35)
+                .ignoresSafeArea()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    // Title
+                    Text(routeName)
+                        .font(.largeTitle)
+                        .bold()
+                    
+                    // Date of route
+                    if let date = routeDate {
+                        Text(date.formatted(date: .abbreviated, time: .shortened))
+                            .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
-                }
-                .font(.body)
-            
-
-                // Map
-                if !mapPolyline.isEmpty {
-                    Map(initialPosition: .region(region)) {
-                        MapPolyline(coordinates: mapPolyline) .stroke(.blue, lineWidth: 4)
-                        
-                        
-                        // Start ping
-                        if let start = mapPolyline.first {
-                            Annotation("Start", coordinate: start) {
-                                ZStack {
-                                    
-                                    Circle().fill(Color.green).frame(width: 14, height: 14)
-                                    Circle().stroke(Color.white, lineWidth: 2).frame(width: 14, height: 14)
-                                }
+                    
+                    
+                    Group {
+                        if let duration = routeDuration ?? routeTotalTime.map({ formatTime(seconds: Int($0)) }) {
+                            HStack(spacing: 16) {
+                                Label(duration, systemImage: "clock")
+                                    .foregroundColor(softGreen)
                             }
+                        } else {
+                            Text("No stats available")
+                                .foregroundStyle(.secondary)
                         }
-                        // End ping
-                        if let end = mapPolyline.last {
-                            Annotation("End", coordinate: end) {
-                                ZStack {
-                                    Circle().fill(Color.red).frame(width: 14, height: 14)
-                                    Circle().stroke(Color.white, lineWidth: 2).frame(width: 14, height: 14)
-                                }
-                            }
-                        }
-                        ForEach(route.routePhotoPins) { pin in
-                            Annotation("Photo", coordinate: pin.coordinate) {
-                                Image(systemName: "camera.circle.fill")
-                                    .font(.system(size: 30))
-                                    .foregroundColor(.purple)
-                                    .background(.white.opacity(0.9))
-                                    .clipShape(Circle())
-                                    .shadow(radius: 2)
-                                    .onTapGesture {
-                                        selectedPin = pin
+                    }
+                    .font(.body)
+                    
+                    
+                    // Map
+                    if !mapPolyline.isEmpty {
+                        Map(initialPosition: .region(region)) {
+                            MapPolyline(coordinates: mapPolyline) .stroke(softGreen, lineWidth: 4)
+                            
+                            
+                            // Start ping
+                            if let start = mapPolyline.first {
+                                Annotation("Start", coordinate: start) {
+                                    ZStack {
+                                        
+                                        Circle().fill(softGreen).frame(width: 14, height: 14)
+                                        Circle().stroke(Color.white, lineWidth: 2).frame(width: 14, height: 14)
                                     }
+                                }
+                            }
+                            // End ping
+                            if let end = mapPolyline.last {
+                                Annotation("End", coordinate: end) {
+                                    ZStack {
+                                        Circle().fill(Color.red).frame(width: 14, height: 14)
+                                        Circle().stroke(Color.white, lineWidth: 2).frame(width: 14, height: 14)
+                                    }
+                                }
+                            }
+                            ForEach(route.routePhotoPins) { pin in
+                                Annotation("Photo", coordinate: pin.coordinate) {
+                                    Image(systemName: "camera.circle.fill")
+                                        .font(.system(size: 30))
+                                        .foregroundColor(softGreen)
+                                        .background(.white.opacity(0.9))
+                                        .clipShape(Circle())
+                                        .shadow(radius: 2)
+                                        .onTapGesture {
+                                            selectedPin = pin
+                                        }
+                                }
                             }
                         }
-                    }
-                    
-                    
-                    .frame(height: 300)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                } else {
-                    // fallback when no coordinates are available
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.gray.opacity(0.15))
-                        VStack(spacing: 8) {
-                            Image(systemName: "map")
-                                .font(.largeTitle)
-                                .foregroundStyle(.secondary)
-                            Text("No route map available")
-                                .foregroundStyle(.secondary)
+                        
+                        
+                        .frame(height: 300)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(softGreen.opacity(0.3), lineWidth: 1))
+                    } else {
+                        // fallback when no coordinates are available
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(mintGreen.opacity(0.3))
+                            VStack(spacing: 8) {
+                                Image(systemName: "map")
+                                    .font(.largeTitle)
+                                    .foregroundStyle(.secondary)
+                                    .foregroundColor(softGreen)
+                                Text("No route map available")
+                                    .foregroundStyle(.secondary)
+                                    .foregroundColor(softGreen)
+                            }
                         }
+                        .frame(height: 200)
                     }
-                    .frame(height: 200)
+                    
+                    Spacer(minLength: 12)
                 }
-
-                Spacer(minLength: 12)
+                .padding()
             }
-            .padding()
-        }
-        .navigationTitle("Route Details")
-        .navigationBarTitleDisplayMode(.inline)
-        .onAppear(perform: configureFromRoute)
-        .sheet(item: $selectedPin) { pin in
-            PhotoPinView(pin: .constant(pin), isReadOnly: true)
+            .navigationTitle("Route Details")
+            .navigationBarTitleDisplayMode(.inline)
+            .onAppear(perform: configureFromRoute)
+            .sheet(item: $selectedPin) { pin in
+                PhotoPinView(pin: .constant(pin), isReadOnly: true)
+            }
         }
     }
 }
