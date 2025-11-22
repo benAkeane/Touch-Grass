@@ -20,7 +20,7 @@ struct ProfileView: View {
     @State private var uploadError: String? = nil
     var onBack: () -> Void = {}
     
-    // Colors from ContentView
+    // Colors from MapView
     private let mintGreen = Color(red: 0.78, green: 0.93, blue: 0.80)
     private let softGreen = Color(red: 0.35, green: 0.60, blue: 0.40)
     
