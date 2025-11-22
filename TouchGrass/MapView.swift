@@ -8,7 +8,7 @@
 import SwiftUI
 import MapKit
 
-struct ContentView: View {
+struct MapView: View {
     
     @StateObject var manager = LocationManager()
     @EnvironmentObject var firebaseFunctions: FirebaseFunctions
@@ -228,5 +228,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    MapView()
 }

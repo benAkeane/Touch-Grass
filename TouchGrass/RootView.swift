@@ -35,7 +35,7 @@ struct RootView: View {
         } else {
             switch currentView {
             case .home:
-                ContentView(
+                MapView(
                     profileSwap: { currentView = .profile },
                     searchSwap: { currentView = .search }
                 )
