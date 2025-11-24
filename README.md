@@ -1,4 +1,4 @@
-By Quinn Doyle, Marco Rubens, Ben Keene, and Tim Mäser
+By Quinn Doyle, Marco Rubens, Ben Keane, and Tim Mäser
 ### The App:
  Touch Grass is a route based app that allows users to walk routes, and take drop pins along the way, where they take a picture to go with each pin. Users can share and view other users routes and track their friends activity. Routes track distance and elapsed time and the user can see this in real time.
 
